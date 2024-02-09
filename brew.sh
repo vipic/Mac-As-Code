@@ -41,6 +41,7 @@ apps=(
     surge
     sublime-text
     logitech-options
+    textexpander
 )
 
 echo "installing cask apps..."
