@@ -42,6 +42,7 @@ apps=(
     sublime-text
     logitech-options
     textexpander
+    qBittorrent
 )
 
 echo "installing cask apps..."
