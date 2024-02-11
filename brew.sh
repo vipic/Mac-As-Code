@@ -43,6 +43,7 @@ apps=(
     logitech-options
     textexpander
     qBittorrent
+    telegram
 )
 
 echo "installing cask apps..."
