@@ -39,6 +39,8 @@ apps=(
     postman
     cleanshot
     surge
+    raycast
+    keyboard-maestro
     sublime-text
     logitech-options
     textexpander
