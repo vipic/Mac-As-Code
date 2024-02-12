@@ -48,6 +48,7 @@ apps=(
     textexpander
     qBittorrent
     telegram
+    blender
 )
 
 echo "installing cask apps..."
