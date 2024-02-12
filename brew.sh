@@ -42,6 +42,7 @@ apps=(
     surge
     raycast
     keyboard-maestro
+    jetbrains-toolbox
     sublime-text
     logitech-options
     textexpander
