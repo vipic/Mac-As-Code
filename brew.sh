@@ -48,7 +48,6 @@ apps=(
     textexpander
     qBittorrent
     telegram
-    blender
     anki
     devonthink
     ppduck
