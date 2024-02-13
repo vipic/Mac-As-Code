@@ -2,7 +2,7 @@
 ## 安装 Homebrew 以及一些软件
 ##############################################
 
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+# /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 ##############################################
 ## 命令行应用
@@ -39,10 +39,8 @@ apps=(
     iterm2
     postman
     cleanshot
-    surge
     raycast
     keyboard-maestro
-    jetbrains-toolbox
     sublime-text
     logitech-options
     textexpander
@@ -52,6 +50,8 @@ apps=(
     devonthink
     ppduck
     skim
+    jetbrains-toolbox
+    # surge # 使用其他方式安装后再使用 brew 安装的话会报错停止
 )
 
 echo "installing cask apps..."
