@@ -49,6 +49,10 @@ apps=(
     qBittorrent
     telegram
     blender
+    anki
+    devonthink
+    ppduck
+    skim
 )
 
 echo "installing cask apps..."
