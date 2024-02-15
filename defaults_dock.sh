@@ -46,6 +46,9 @@ defaults write com.apple.dock mouse-over-hilite-stack -int 1
 # 右下 lock screen
 defaults write com.apple.dock wvous-br-corner -int 13
 # 左上 显示桌面
-defaults write com.apple.dock wvous-tr-corner -int 4
+defaults write com.apple.dock wvous-tl-corner -int 4
+# 左下和右上空白
+defaults write com.apple.dock wvous-tr-corner -int 1
+defaults write com.apple.dock wvous-bl-corner -int 1
 
 killall Dock
