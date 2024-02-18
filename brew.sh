@@ -33,12 +33,12 @@ binaries=(
 )
 
 echo "installing binaries..."
-for binariy in "${binaries[@]}"; do
-    brew install binariy
+for binary in "${binaries[@]}"; do
+    brew install $binary
     if [ $? -ne 0 ]; then
-        echo "Failed to install binariy"
+        echo "Failed to install $binary"
     else
-        echo "Successfully installed binariy"
+        echo "Successfully installed $binary"
     fi
 done
 brew cleanup
