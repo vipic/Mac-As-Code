@@ -29,12 +29,18 @@ binaries=(
     htop
     mas
     http-server
-    rar
     node
 )
 
 echo "installing binaries..."
-brew install "${binaries[@]}"
+for binariy in "${binaries[@]}"; do
+    brew install binariy
+    if [ $? -ne 0 ]; then
+        echo "Failed to install binariy"
+    else
+        echo "Successfully installed binariy"
+    fi
+done
 brew cleanup
 echo "Brew Upgrade"
 brew upgrade
@@ -63,10 +69,19 @@ apps=(
     devonthink
     ppduck
     skim
+    rar
     jetbrains-toolbox
     # surge # 使用其他方式安装后再使用 brew 安装的话会报错停止
 )
 
 echo "installing cask apps..."
-brew install --cask "${apps[@]}"
+for app in "${apps[@]}"; do
+    brew install --cask $app
+    if [ $? -ne 0 ]; then
+        echo "Failed to install $app"
+    else
+        echo "Successfully installed $app"
+    fi
+done
+
 brew cleanup
