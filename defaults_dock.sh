@@ -39,6 +39,9 @@ defaults write com.apple.dock autohide-time-modifier -int 0
 # Dock 显示打开应用程序的指示灯
 defaults write com.apple.dock show-process-indicators -int 1
 
+# Dock 不单独显示最近打开应用
+ defaults write com.apple.dock show-recents -int 0
+
 # Dock 鼠标悬浮高亮
 defaults write com.apple.dock mouse-over-hilite-stack -int 1
 
@@ -50,5 +53,13 @@ defaults write com.apple.dock wvous-tl-corner -int 4
 # 左下和右上空白
 defaults write com.apple.dock wvous-tr-corner -int 1
 defaults write com.apple.dock wvous-bl-corner -int 1
+
+# 固定在 Dock 的應用
+# clear items
+defaults write com.apple.dock persistent-apps -array
+
+for dockItem in {/System/Applications/{"Launchpad.app"}; do
+  defaults write com.apple.dock persistent-apps -array-add '<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>'$dockItem'</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>'
+done
 
 killall Dock
