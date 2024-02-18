@@ -2,7 +2,7 @@
 ## 安装 Homebrew 以及一些软件
 ##############################################
 
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)";
 
 # 将 brew 加入环境变量
 echo 'eval ,"$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
