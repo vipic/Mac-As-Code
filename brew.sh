@@ -70,6 +70,7 @@ apps=(
     ppduck
     skim
     rar
+    obsidian
     squirrel
     jetbrains-toolbox
     # surge # 使用其他方式安装后再使用 brew 安装的话会报错停止
