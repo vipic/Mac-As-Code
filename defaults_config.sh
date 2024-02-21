@@ -21,3 +21,12 @@ defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dic
 
 # 支持简单密码
 pwpolicy -clearaccountpolicies
+
+
+# Finder 使用 list 视图
+defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+
+# Finder 显示文件扩展名
+defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+
+killall Finder
