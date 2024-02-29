@@ -22,6 +22,11 @@ defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dic
 # 支持简单密码
 pwpolicy -clearaccountpolicies
 
+# 按键重复速度(长按删除键的时候这个的执行速度，越短越快)
+defaults write -g KeyRepeat -int 2
+的的点点滴滴的点点滴滴的点点滴滴的的
+# 按键重复延迟(按住一个字母后等多久会变成一直输入)
+defaults write -g InitialKeyRepeat -int 15
 
 # Finder 使用 list 视图
 defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
