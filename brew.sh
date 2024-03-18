@@ -73,7 +73,7 @@ apps=(
     obsidian
     squirrel
     jetbrains-toolbox
-    # surge # 使用其他方式安装后再使用 brew 安装的话会报错停止
+    # surge # 使用其他方式安装后再使用 brew 安装的话会报错停止，并且该仓库的大部分都要处于科学上网的环境下，所以第一步手动安装这个配置好，brew安装就可以排除
 )
 
 echo "installing cask apps..."
