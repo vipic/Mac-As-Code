@@ -52,6 +52,7 @@ brew upgrade
 apps=(
     google-chrome
     iina
+    bartender
     arc
     iterm2
     postman
