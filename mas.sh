@@ -25,6 +25,6 @@ mas install 967805235
 mas install 836500024
 # Craft
 mas install 1487937127
-# Microsoft Remote Desktop
-mas install 1295203466
+# Microsoft Remote Desktop 国区无
+# mas install 1295203466
 
