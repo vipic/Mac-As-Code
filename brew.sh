@@ -30,6 +30,7 @@ binaries=(
     mas
     http-server
     node
+    rar
 )
 
 echo "installing binaries..."
@@ -68,7 +69,6 @@ apps=(
     devonthink
     ppduck
     skim
-    rar
     obsidian
     squirrel
     jetbrains-toolbox
