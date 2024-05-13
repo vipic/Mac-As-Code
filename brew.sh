@@ -50,10 +50,8 @@ brew upgrade
 ##############################################
 
 apps=(
-    orbstack
     google-chrome
     iina
-    discord
     arc
     iterm2
     postman
