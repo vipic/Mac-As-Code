@@ -24,7 +24,7 @@ mas install 967805235
 # WeChat
 mas install 836500024
 # Craft
-mas install 1487937127
+#mas install 1487937127 非必要软件
 # Microsoft Remote Desktop 国区无
 # mas install 1295203466
 
