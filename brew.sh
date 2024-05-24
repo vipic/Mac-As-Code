@@ -31,6 +31,8 @@ binaries=(
     http-server
     node
     rar
+    pyenv
+    pyenv-virtualenv
 )
 
 echo "installing binaries..."
