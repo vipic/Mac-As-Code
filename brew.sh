@@ -30,7 +30,6 @@ binaries=(
     mas
     http-server
     node
-    rar
     pyenv
     pyenv-virtualenv
 )
@@ -55,7 +54,6 @@ brew upgrade
 apps=(
     google-chrome
     iina
-    bartender
     arc
     iterm2
     postman
