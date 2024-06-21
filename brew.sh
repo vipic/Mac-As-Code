@@ -69,6 +69,7 @@ apps=(
     devonthink
     ppduck
     skim
+    sourcetree
     obsidian
     squirrel
     jetbrains-toolbox
