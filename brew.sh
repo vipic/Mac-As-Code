@@ -25,7 +25,8 @@ binaries=(
     tree
     pnpm
     yarn
-    just
+    # just 已经预装了
+    # just
     htop
     mas
     http-server
@@ -52,7 +53,6 @@ brew upgrade
 ##############################################
 
 apps=(
-    google-chrome
     iina
     arc
     iterm2
@@ -68,7 +68,6 @@ apps=(
     anki
     devonthink
     ppduck
-    skim
     sourcetree
     obsidian
     squirrel
