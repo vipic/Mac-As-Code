@@ -53,6 +53,7 @@ brew upgrade
 ##############################################
 
 apps=(
+    brave-browser
     iina
     arc
     iterm2
