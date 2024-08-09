@@ -25,8 +25,7 @@ binaries=(
     tree
     pnpm
     yarn
-    # just 已经预装了
-    # just
+    just # already installed by macos
     htop
     mas
     http-server
@@ -54,7 +53,7 @@ brew upgrade
 
 apps=(
     brave-browser
-    iina
+    vlc
     arc
     iterm2
     postman
@@ -64,7 +63,6 @@ apps=(
     sublime-text
     logitech-options
     textexpander
-    qBittorrent
     telegram
     anki
     devonthink
