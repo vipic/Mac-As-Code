@@ -54,6 +54,9 @@ defaults write com.apple.dock wvous-tl-corner -int 4
 defaults write com.apple.dock wvous-tr-corner -int 1
 defaults write com.apple.dock wvous-bl-corner -int 1
 
+# 点击壁纸不展现桌面(苹果在增加 State Manager 模式之后，默认行为变成了点击壁纸展示桌面)
+defaults write com.apple.WindowManager EnableStandardClickToShowDesktop -bool false
+
 # 固定在 Dock 的应用 有点小问题
 # 先将固定应用清空
 defaults write com.apple.dock persistent-apps -array
