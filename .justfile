@@ -26,3 +26,7 @@ backup_zshrc:
 
 start: append_multiple_to_host
     sh init.sh
+
+# 软链接 Rime 输入法的配置文件地址
+lnrime:
+    ln -s ~/Documents/Sync/Rime ~/Library/Rime    
