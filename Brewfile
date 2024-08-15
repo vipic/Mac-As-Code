@@ -31,6 +31,7 @@ cask "squirrel"
 cask "sublime-text"
 cask "telegram"
 cask "textexpander"
+cask "wireshark"
 
 mas "1Password 7", id: 1333542190
 mas "Drafts", id: 1435957248
