@@ -4,7 +4,6 @@ xcode-select --install
 
 . ./defaults_config.sh
 . ./brew.sh
-. ./mas.sh
 . ./defaults_dock.sh
 
 # OhMyZsh
