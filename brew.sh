@@ -18,70 +18,9 @@ fi
 
 
 ##############################################
-## 命令行应用
+## 使用 Homebrew Bundle 安装 Brewfile 中的依赖
+## tips: 备份当前电脑的依赖，使用 `brew bundle dump --describe --force --file="~/xxx/Brewfile"`
+## 通过文件安装依赖，使用 `brew bundle --file="~/xxx/Brewfile"`
 ##############################################
 
-binaries=(
-    tree
-    pnpm
-    yarn
-    just # already installed by macos
-    htop
-    mas
-    http-server
-    node
-    pyenv
-    pyenv-virtualenv
-)
-
-echo "installing binaries..."
-for binary in "${binaries[@]}"; do
-    brew install $binary
-    if [ $? -ne 0 ]; then
-        echo "Failed to install $binary"
-    else
-        echo "Successfully installed $binary"
-    fi
-done
-brew cleanup
-echo "Brew Upgrade"
-brew upgrade
-
-##############################################
-## 有 UI 的应用
-##############################################
-
-apps=(
-    brave-browser
-    vlc
-    arc
-    iterm2
-    postman
-    cleanshot
-    raycast
-    keyboard-maestro
-    sublime-text
-    logitech-options
-    textexpander
-    telegram
-    anki
-    devonthink
-    ppduck
-    sourcetree
-    obsidian
-    squirrel
-    jetbrains-toolbox
-    # surge # 使用其他方式安装后再使用 brew 安装的话会报错停止，并且该仓库的大部分都要处于科学上网的环境下，所以第一步手动安装这个配置好，brew安装就可以排除
-)
-
-echo "installing cask apps..."
-for app in "${apps[@]}"; do
-    brew install --cask $app
-    if [ $? -ne 0 ]; then
-        echo "Failed to install $app"
-    else
-        echo "Successfully installed $app"
-    fi
-done
-
-brew cleanup
+brew bundle
