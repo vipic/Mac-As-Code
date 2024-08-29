@@ -33,11 +33,5 @@ cask "telegram"
 cask "textexpander"
 cask "wireshark"
 
-mas "1Password 7", id: 1333542190
+# id是跟随这个应用下载使用的苹果账号的，如果id并不符合当前登录的账号，则无法安装
 mas "Drafts", id: 1435957248
-mas "Fantastical", id: 975937182
-mas "Keynote", id: 409183694
-mas "Numbers", id: 409203825
-mas "Pages", id: 409201541
-mas "Paste", id: 967805235
-mas "WeChat", id: 836500024
