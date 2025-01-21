@@ -13,6 +13,7 @@ brew "yarn"
 
 cask "anki"
 cask "arc"
+cask "brave-browser"
 cask "cleanshot"
 cask "devonthink"
 cask "downie"
@@ -37,3 +38,7 @@ cask "wireshark"
 
 # id是跟随这个应用下载使用的苹果账号的，如果id并不符合当前登录的账号，则无法安装
 mas "Drafts", id: 1435957248
+mas "Keynote", id: 409183694
+mas "Pages", id: 409201541
+mas "Numbers", id: 409203825
+mas "DaVinci Resolve", id: 571213070
