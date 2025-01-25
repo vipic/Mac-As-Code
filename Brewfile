@@ -30,6 +30,7 @@ cask "ppduck"
 cask "qbittorrent"
 cask "raycast"
 cask "resilio-sync"
+cask "rode-central"
 cask "skim"
 cask "sourcetree"
 cask "squirrel"
@@ -44,3 +45,5 @@ mas "Keynote", id: 409183694
 mas "Pages", id: 409201541
 mas "Numbers", id: 409203825
 mas "DaVinci Resolve", id: 571213070
+mas "The Unarchiver", id: 425424353
+mas "1Password 7", id: 1333542190
