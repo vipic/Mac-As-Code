@@ -34,4 +34,7 @@ defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
 # Finder 显示文件扩展名
 defaults write NSGlobalDomain AppleShowAllExtensions -bool true
 
+# 日期显示采用 24 小时制
+defaults write NSGlobalDomain AppleICUForce24HourTime -bool true
+
 killall Finder
