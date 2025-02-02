@@ -1,4 +1,4 @@
-# MacOS config and applications as code
+# macOS config and applications as code
 
 通过执行脚本批量完成系统的设置的更改，应用程序的安装等。
 
@@ -6,7 +6,7 @@
 
 ### 如何改变系统配置
 
-Mac 提供了一个 `defaults` 的命令可以查询和配置各个系统参数，包括但不限于 Dock、触发角、系统偏好等等。
+macOS 提供了一个 `defaults` 的命令可以查询和配置各个系统参数，包括但不限于 Dock、触发角、系统偏好等等。
 
 执行 `defaults` 命令后瞬间完成配置，不用去 System Settings 依次去找各个要设置的点并修改。
 
@@ -16,7 +16,7 @@ Mac 提供了一个 `defaults` 的命令可以查询和配置各个系统参数�
 
 ### 重要
 
-墙内用户执行这些脚本前先解决好网络问题，否则 `brew` 安装都是问题。
+受限于 GFW ，部分用户执行这些脚本前先解决好网络问题，否则 `brew` 安装都是问题。
 
 
 ### 开始执行
