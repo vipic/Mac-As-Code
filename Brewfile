@@ -7,10 +7,11 @@ brew "http-server"
 brew "jq"
 brew "just"
 brew "mas"
-brew "ollama", restart_service: :changed
+brew "ollama",
 brew "pnpm"
 brew "pyenv"
 brew "pyenv-virtualenv"
+brew "redis"
 brew "tree"
 brew "yarn"
 brew "yt-dlp"
