@@ -1,15 +1,19 @@
 tap "homebrew/bundle"
+tap "homebrew/services"
+
 brew "htop"
 brew "node"
 brew "http-server"
 brew "jq"
 brew "just"
 brew "mas"
+brew "ollama", restart_service: :changed
 brew "pnpm"
 brew "pyenv"
 brew "pyenv-virtualenv"
 brew "tree"
 brew "yarn"
+brew "yt-dlp"
 
 cask "anki"
 cask "arc"
@@ -26,7 +30,6 @@ cask "keyboard-maestro"
 cask "logitech-options"
 cask "obsidian"
 cask "postman"
-cask "ppduck"
 cask "qbittorrent"
 cask "raycast"
 cask "resilio-sync"
@@ -40,10 +43,11 @@ cask "textexpander"
 cask "wireshark"
 
 # id是跟随这个应用下载使用的苹果账号的，如果id并不符合当前登录的账号，则无法安装
+mas "1Password 7", id: 1333542190
+mas "DaVinci Resolve", id: 571213070
 mas "Drafts", id: 1435957248
 mas "Keynote", id: 409183694
-mas "Pages", id: 409201541
 mas "Numbers", id: 409203825
-mas "DaVinci Resolve", id: 571213070
+mas "Pages", id: 409201541
+mas "Paste", id: 967805235
 mas "The Unarchiver", id: 425424353
-mas "1Password 7", id: 1333542190
