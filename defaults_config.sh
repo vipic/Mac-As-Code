@@ -13,10 +13,10 @@ defaults write NSGlobalDomain AppleMeasurementUnits -string Centimeters
 # 温度显示摄氏度
 defaults write -g AppleTemperatureUnit -string Celsius
 
-# 禁止 mac 系统的文本替换
+# 禁止 mac 系统的文本替换 [参考链接](https://github.com/element-hq/element-web/issues/7155) 和他类似，之所以不删除 macOS 上的文本替换，是因为文本替换会在 iOS 和 macOS 之间同步，iOS 端会将替换内容上到候选词里面，不会误触。但是在 macOS 上直接就触发了替换，非常影响使用。
 defaults write -g WebAutomaticTextReplacementEnabled -int 0
 
-# 释放快捷键 ⌘Command+D (需要重启)
+# 释放快捷键 ⌘Command+D (需要重启) [参考链接](https://apple.stackexchange.com/questions/22785/how-do-i-disable-the-command-control-d-word-definition-keyboard-shortcut-in-os-x)
 defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dict><key>enabled</key><false/></dict>'
 
 # 支持简单密码
