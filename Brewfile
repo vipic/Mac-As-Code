@@ -17,10 +17,8 @@ brew "yarn"
 brew "yt-dlp"
 
 cask "anki"
-cask "arc"
 cask "brave-browser"
 cask "calibre"
-cask "chatgpt"
 cask "cleanshot"
 cask "devonthink"
 cask "downie"
@@ -47,6 +45,7 @@ cask "wireshark"
 mas "1Password 7", id: 1333542190
 mas "DaVinci Resolve", id: 571213070
 mas "Drafts", id: 1435957248
+mas "Hidden Bar", id:1452453066
 mas "Keynote", id: 409183694
 mas "Numbers", id: 409203825
 mas "Pages", id: 409201541
