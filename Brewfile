@@ -7,18 +7,18 @@ brew "http-server"
 brew "jq"
 brew "just"
 brew "mas"
-brew "ollama",
+brew "ollama"
 brew "pnpm"
-brew "pyenv"
-brew "pyenv-virtualenv"
-brew "redis"
+# brew "pyenv"
+# brew "pyenv-virtualenv"
+# brew "redis"
 brew "tree"
 brew "yarn"
 brew "yt-dlp"
 
 cask "anki"
 cask "brave-browser"
-cask "calibre"
+# cask "calibre"
 cask "cleanshot"
 cask "devonthink"
 cask "downie"
@@ -29,12 +29,11 @@ cask "keyboard-maestro"
 cask "logitech-options"
 cask "obsidian"
 cask "postman"
-cask "qbittorrent"
+# cask "qbittorrent"
 cask "raycast"
-cask "resilio-sync"
 cask "rode-central"
 cask "skim"
-cask "sourcetree"
+# cask "sourcetree"
 cask "squirrel"
 cask "sublime-text"
 cask "telegram"
@@ -49,5 +48,6 @@ mas "Hidden Bar", id:1452453066
 mas "Keynote", id: 409183694
 mas "Numbers", id: 409203825
 mas "Pages", id: 409201541
-mas "Paste", id: 967805235
+# 其他 apple id 购买的，这个使用的时候单独安装
+# mas "Paste", id: 967805235
 mas "The Unarchiver", id: 425424353
