@@ -38,6 +38,7 @@ cask "squirrel"
 cask "sublime-text"
 cask "telegram"
 cask "textexpander"
+cask "visual-studio-code"
 cask "wireshark"
 
 # id是跟随这个应用下载使用的苹果账号的，如果id并不符合当前登录的账号，则无法安装
