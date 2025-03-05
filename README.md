@@ -37,3 +37,10 @@ sh init.sh
 该仓库也有 `just` 文件，它也可以执行上述命令，但是 `just` 原本使用场景就是将本项目的一些常用脚本统一提取和展示，类似前端开发 `package.json` 中的 `scripts` 一样，不同的是 `just` 是一个专用语言，不限制项目的开发语言。
 
 目前 `.justfile` 中有一些简单的系统文件备份追加等命令，可以不用关心
+
+
+
+// TODO
+- [ ] 需要 sudo 权限的软件 logitech-options rode-central squirrel wireshark
+- [ ] 安装 brew 需要 sudo 和  xcode-commandline tool `xcode-select --install`
+- [ ] Ppduck 需要 rosetta

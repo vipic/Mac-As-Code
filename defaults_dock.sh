@@ -46,6 +46,7 @@ defaults write com.apple.dock show-process-indicators -int 1
 defaults write com.apple.dock mouse-over-hilite-stack -int 1
 
 # Dock 设置触发角
+# 右下角锁屏
 defaults write com.apple.dock wvous-br-corner -int 13
 # 左上 显示桌面
 defaults write com.apple.dock wvous-tl-corner -int 4
@@ -56,13 +57,12 @@ defaults write com.apple.dock wvous-bl-corner -int 1
 # 点击壁纸不展现桌面(苹果在增加 State Manager 模式之后，默认行为变成了点击壁纸展示桌面)
 defaults write com.apple.WindowManager EnableStandardClickToShowDesktop -bool false
 
-# 固定在 Dock 的应用 有点小问题
-# 先将固定应用清空
+# 清空固定在 Dock 上的应用
 defaults write com.apple.dock persistent-apps -array
-#
-for dockItem in {/System/Applications/Launchpad,/Applications/{"Safari","Sublime Text"}}.app; do
- defaults write com.apple.dock persistent-apps -array-add '<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>'"$dockItem"'</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>'
-done
+# 主动固定特定应用
+#for dockItem in {/System/Applications/Launchpad,/Applications/{"Safari","Sublime Text"}}.app; do
+# defaults write com.apple.dock persistent-apps -array-add '<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>'"$dockItem"'</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>'
+#done
 
 killall Dock
 

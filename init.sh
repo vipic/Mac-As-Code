@@ -1,5 +1,3 @@
-# 需要补充一个预授权 sudo
-
 xcode-select --install
 
 . ./defaults_config.sh
