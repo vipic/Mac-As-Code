@@ -35,3 +35,7 @@ sh init.sh
 3. `mas.sh` 在 2 的基础上使用 `mas` 安装一些 App Store 的软件(需要提前登录 App Store)
 4. `defaults_dock.sh` 修改 Dock 设置，包括 Dock 的位置、触发角、常驻应用等(常驻应用需要 2 和 3 安装完成，例如将 Sublime Text 添加到 Dock 就需要 Sublime Text 安装完成)
 
+## 其他
+
+本仓库配置均是基于作者本人使用习惯和个人需求，可以根据自己的需求修改。
+其中 `Brewfile` 是通过 `brew bundle dump` 生成的，可以通过 `brew bundle` 安装其中的软件。
