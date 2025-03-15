@@ -1,6 +1,6 @@
-##############################################
-## 安装 Homebrew 以及一些软件
-##############################################
+#############################
+## 安装 Homebrew 以及一些软件 ##
+#############################
 
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)";
 
@@ -16,11 +16,10 @@ else
 fi
 
 
-
 ##############################################
 ## 使用 Homebrew Bundle 安装 Brewfile 中的依赖
 ## tips: 备份当前电脑的依赖，使用 `brew bundle dump --describe --force --file="~/xxx/Brewfile"`
-## 通过文件安装依赖，使用 `brew bundle --file="~/xxx/Brewfile"`
+## 通过指定文件安装依赖，使用 `brew bundle --file="~/xxx/Brewfile"`
 ##############################################
 
 brew bundle

@@ -1,6 +1,6 @@
-##############################################
-## 设置 Dock 相关
-##############################################
+###################
+## 设置 Dock 相关 ##
+###################
 
 # 设置 LaunchPad 显示行列数
 defaults write com.apple.dock springboard-rows -int 10
@@ -57,7 +57,7 @@ defaults write com.apple.dock wvous-bl-corner -int 1
 # 点击壁纸不展现桌面(苹果在增加 State Manager 模式之后，默认行为变成了点击壁纸展示桌面)
 defaults write com.apple.WindowManager EnableStandardClickToShowDesktop -bool false
 
-# 清空固定在 Dock 上的应用
+# 清空固定在 Dock 上的应用，之后根据喜好再手动固定
 defaults write com.apple.dock persistent-apps -array
 # 主动固定特定应用
 #for dockItem in {/System/Applications/Launchpad,/Applications/{"Safari","Sublime Text"}}.app; do
