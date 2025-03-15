@@ -16,7 +16,8 @@ macOS 提供了一个 `defaults` 的命令可以查询和配置各个系统参�
 
 ### 重要
 
-受限于 GFW ，部分用户执行这些脚本前先解决好网络问题，否则 `brew` 安装都是问题。
+- 受限于 GFW ，部分用户执行这些脚本前先解决好网络问题，否则 `brew` 安装都是问题。
+- 有些程序安装需要 `sudo` 权限，需要手动输入密码，或者提前 `sudo -s` 进入 root 用户(需要确认安装内容安全可控，不建议默认使用)。
 
 
 ### 开始执行
@@ -37,10 +38,3 @@ sh init.sh
 该仓库也有 `just` 文件，它也可以执行上述命令，但是 `just` 原本使用场景就是将本项目的一些常用脚本统一提取和展示，类似前端开发 `package.json` 中的 `scripts` 一样，不同的是 `just` 是一个专用语言，不限制项目的开发语言。
 
 目前 `.justfile` 中有一些简单的系统文件备份追加等命令，可以不用关心
-
-
-
-// TODO
-- [ ] 需要 sudo 权限的软件 logitech-options rode-central squirrel wireshark
-- [ ] 安装 brew 需要 sudo 和  xcode-commandline tool `xcode-select --install`
-- [ ] Ppduck 需要 rosetta
