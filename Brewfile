@@ -1,6 +1,7 @@
 tap "homebrew/bundle"
 tap "homebrew/services"
 
+brew "ffmpeg"
 brew "htop"
 brew "node"
 brew "http-server"
@@ -13,12 +14,15 @@ brew "yt-dlp"
 
 cask "1Password"
 cask "anki"
+cask "android-platform-tools"
 cask "brave-browser"
 cask "chatwise"
 # 并非每个电脑都安装，所以注释掉
 # cask "calibre"
 # cask "devonthink"
+cask "charles"
 cask "cleanshot"
+cask "discord"
 cask "downie"
 cask "google-chrome"
 cask "iina"
