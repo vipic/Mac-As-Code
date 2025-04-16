@@ -39,3 +39,7 @@ sh init.sh
 
 本仓库配置均是基于作者本人使用习惯和个人需求，可以根据自己的需求修改。
 其中 `Brewfile` 是通过 `brew bundle dump` 生成的，可以通过 `brew bundle` 安装其中的软件。
+
+## 待完善
+
+- [ ] 修改切换输入法的快捷键(取消 Spotlight 相关的快捷键，将切换输入法修改回 ⌘Command + 空格。)
