@@ -43,3 +43,4 @@ sh init.sh
 ## 待完善
 
 - [ ] 修改切换输入法的快捷键(取消 Spotlight 相关的快捷键，将切换输入法修改回 ⌘Command + 空格。)
+- [ ] 修改 Trackpad 支持 Swipe between pages
