@@ -59,10 +59,10 @@ defaults write com.apple.WindowManager EnableStandardClickToShowDesktop -bool fa
 
 # 清空固定在 Dock 上的应用，之后根据喜好再手动固定
 defaults write com.apple.dock persistent-apps -array
-# 主动固定特定应用
-#for dockItem in {/System/Applications/Launchpad,/Applications/{"Safari","Sublime Text"}}.app; do
-# defaults write com.apple.dock persistent-apps -array-add '<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>'"$dockItem"'</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>'
-#done
+# 主动固定特定应用，主要固定两个，一个是 launchPad 方便有时通过这里检查应用，一个是编辑器方便拖动文件到图表上直接打开
+for dockItem in {/System/Applications/Launchpad,'/Applications/Sublime Text'}.app; do
+ defaults write com.apple.dock persistent-apps -array-add '<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>'"$dockItem"'</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>'
+done
 
 killall Dock
 
