@@ -30,7 +30,7 @@ cask "obsidian"
 
 cask "Raycast"
 # cask "rode-central"
-cask "squirrel"
+cask "squirrel-app"
 cask "sublime-text"
 cask "telegram"
 
