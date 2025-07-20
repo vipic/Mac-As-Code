@@ -1,6 +1,13 @@
 # brew "android-platform-tools"
 # brew "ffmpeg"
-# brew "gpg"
+
+# 需要 sudo 授权，所以提到前面
+
+cask "logitech-options"
+cask "rode-central"
+cask "squirrel-app"
+
+brew "gpg"
 brew "htop"
 brew "node"
 brew "http-server"
@@ -15,9 +22,8 @@ cask "anki"
 cask "brave-browser"
 cask "chatgpt"
 cask "chatWise"
-# cask "cleanShot"
-# cask "craft"
-# cask "discord"
+cask "cleanShot"
+cask "devonthink"
 cask "downie"
 # cask "google-chrome"
 cask "iina"
@@ -25,13 +31,9 @@ cask "insomnia"
 cask "iterm2"
 cask "jetbrains-toolbox"
 cask "keyboard-maestro"
-cask "logitech-options"
 cask "NetNewsWire"
 cask "obsidian"
-
 cask "Raycast"
-# cask "rode-central"
-cask "squirrel-app"
 cask "sublime-text"
 cask "telegram"
 
@@ -39,7 +41,6 @@ cask "telegram"
 # 并非每个电脑都安装
 # cask "calibre"
 # cask "charles"
-# cask "devonthink"
 # cask "qbittorrent"
 # cask "wireshark"
 # cask "Ppduck"
@@ -48,7 +49,7 @@ cask "telegram"
 ############################################################
 # mas 应用是跟随苹果账号的，如果id并不符合当前登录的账号，则无法安装 #
 ############################################################
-# mas "DaVinci Resolve", id: 571213070
+mas "DaVinci Resolve", id: 571213070
 mas "Drafts", id: 1435957248
 # mas "Keynote", id: 409183694
 # mas "Numbers", id: 409203825
