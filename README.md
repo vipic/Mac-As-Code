@@ -31,16 +31,15 @@ sh init.sh
 依次执行各个项目的安装和配置，下面是按照执行顺序的各个模块的说明。其中 1 和 4 瞬间完成，2 和 3 需要下载软件，时间较长。
 
 1. `defaults_config.sh` 修改 Mac 系统设置，和作者本人的使用习惯相关，包括简单密码、Finder 设置等
-2. `brew.sh` 安装 Homebrew，之后安装一些常用的软件
-3. `mas.sh` 在 2 的基础上使用 `mas` 安装一些 App Store 的软件(需要提前登录 App Store)
-4. `defaults_dock.sh` 修改 Dock 设置(部分设置依赖上述步骤应用安装完成，所以最后执行)
+2. `brew.sh` 安装 Homebrew，之后安装一些常用的软件（含 App Store 软件，通过 Brewfile 中的 mas 条目）
+3. `defaults_dock.sh` 修改 Dock 设置（部分设置依赖上述步骤应用安装完成，所以最后执行）
 
 ## 其他
 
 本仓库配置均是基于作者本人使用习惯和个人需求，可以根据自己的需求修改。
 其中 `Brewfile` 是通过 `brew bundle dump` 生成的，可以通过 `brew bundle` 安装其中的软件。
 
-item2中要安装 oh-my-zsh 执行下述命令自行安装：(因需要安装在特定程序中，所以不在 `init.sh` 中执行)
+iTerm2 中要安装 oh-my-zsh 执行下述命令自行安装：（因需要安装在特定程序中，所以不在 `init.sh` 中执行）
 
 ```shell
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"

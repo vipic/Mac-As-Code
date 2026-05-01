@@ -1,11 +1,14 @@
+#!/bin/bash
+set -eu
+
 ######################################
 ## 设置修改，有的属性需要重启电脑之后生效 ##
 ######################################
 
-# 自动隐藏菜单栏
+# 始终显示菜单栏（不自动隐藏）
 defaults write NSGlobalDomain _HIHideMenuBar -int 0
 
-# 应用全屏的时候菜单栏是否可见
+# 全屏时隐藏菜单栏
 defaults write NSGlobalDomain AppleMenuBarVisibleInFullscreen -int 0
 
 defaults write NSGlobalDomain AppleMeasurementUnits -string Centimeters
@@ -19,22 +22,22 @@ defaults write -g WebAutomaticTextReplacementEnabled -int 0
 # 释放快捷键 ⌘Command+D (需要重启) [参考链接](https://apple.stackexchange.com/questions/22785/how-do-i-disable-the-command-control-d-word-definition-keyboard-shortcut-in-os-x)
 defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dict><key>enabled</key><false/></dict>'
 
-# 支持简单密码
+# 允许简单密码（家庭电脑不需要复杂密码策略）
 pwpolicy -clearaccountpolicies
 
-# 按键重复速度(长按删除键的时候这个的执行速度，越短越快)
+# 按键重复速度（长按删除键时字符重复间隔，越小越快。2 = 30ms，为系统偏好设置滑条允许的最快值；1 = 15ms 可通过 defaults write 设置）
 defaults write -g KeyRepeat -int 2
 
-# 按键重复延迟(按住一个字母后等多久会变成一直输入)
+# 按键重复延迟（按住一个字母后等多久开始连续输入，越小越短）
 defaults write -g InitialKeyRepeat -int 15
 
-# Finder 使用 list 视图
+# Finder 使用列表视图
 defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
 
 # Finder 显示文件扩展名
 defaults write NSGlobalDomain AppleShowAllExtensions -bool true
 
-# 日期显示采用 24 小时制 (重启电脑生效)
+# 日期显示采用 24 小时制（重启电脑生效）
 defaults write NSGlobalDomain AppleICUForce24HourTime -bool true
 
 # 隐藏 macOS 菜单中的图标
