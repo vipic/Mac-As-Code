@@ -37,4 +37,7 @@ defaults write NSGlobalDomain AppleShowAllExtensions -bool true
 # 日期显示采用 24 小时制 (重启电脑生效)
 defaults write NSGlobalDomain AppleICUForce24HourTime -bool true
 
+# 隐藏 macOS 菜单中的图标
+defaults write -g NSMenuEnableActionImages -bool NO
+
 killall Finder
