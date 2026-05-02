@@ -19,7 +19,7 @@ defaults write -g AppleTemperatureUnit -string Celsius
 # 禁止 mac 系统的文本替换 [参考链接](https://github.com/element-hq/element-web/issues/7155) 和他类似，之所以不删除 macOS 上的文本替换，是因为文本替换会在 iOS 和 macOS 之间同步，iOS 端会将替换内容上到候选词里面，不会误触。但是在 macOS 上直接就触发了替换，非常影响使用。
 defaults write -g WebAutomaticTextReplacementEnabled -int 0
 
-# 释放快捷键 ⌘Command+D (需要重启) [参考链接](https://apple.stackexchange.com/questions/22785/how-do-i-disable-the-command-control-d-word-definition-keyboard-shortcut-in-os-x)
+# 释放快捷键 ⌘Command+D（查字典）[参考链接](https://apple.stackexchange.com/questions/22785)
 defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dict><key>enabled</key><false/></dict>'
 
 # 允许简单密码（家庭电脑不需要复杂密码策略）
@@ -44,3 +44,12 @@ defaults write NSGlobalDomain AppleICUForce24HourTime -bool true
 defaults write -g NSMenuEnableActionImages -bool NO
 
 killall Finder
+
+# ⚠️ 以下命令未经验证，使用时请确认效果
+
+# 切换输入法快捷键改回 ⌘Space（先禁用 Spotlight 的 ⌘Space，再分配给输入法切换）
+defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 '<dict><key>enabled</key><false/></dict>'
+defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 '<dict><key>enabled</key><true/><key>value</key><dict><key>parameters</key><array><integer>32</integer><integer>49</integer><integer>1048576</integer></array><key>type</key><string>standard</string></dict></dict>'
+
+# Trackpad 三指水平滑动 = 在页面间滑动
+defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerHorizSwipeGesture -int 1
