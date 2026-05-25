@@ -26,7 +26,7 @@ defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dic
 pwpolicy -clearaccountpolicies
 
 # 按键重复速度（长按删除键时字符重复间隔，越小越快。2 = 30ms，为系统偏好设置滑条允许的最快值；1 = 15ms 可通过 defaults write 设置）
-defaults write -g KeyRepeat -int 2
+defaults write -g KeyRepeat -int 1
 
 # 按键重复延迟（按住一个字母后等多久开始连续输入，越小越短）
 defaults write -g InitialKeyRepeat -int 15
@@ -43,13 +43,7 @@ defaults write NSGlobalDomain AppleICUForce24HourTime -bool true
 # 隐藏 macOS 菜单中的图标
 defaults write -g NSMenuEnableActionImages -bool NO
 
-killall Finder
-
-# ⚠️ 以下命令未经验证，使用时请确认效果
-
-# 切换输入法快捷键改回 ⌘Space（先禁用 Spotlight 的 ⌘Space，再分配给输入法切换）
-defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 64 '<dict><key>enabled</key><false/></dict>'
-defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 '<dict><key>enabled</key><true/><key>value</key><dict><key>parameters</key><array><integer>32</integer><integer>49</integer><integer>1048576</integer></array><key>type</key><string>standard</string></dict></dict>'
-
 # Trackpad 三指水平滑动 = 在页面间滑动
 defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerHorizSwipeGesture -int 1
+
+killall Finder
