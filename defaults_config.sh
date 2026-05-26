@@ -26,7 +26,7 @@ defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dic
 pwpolicy -clearaccountpolicies
 
 # 按键重复速度（长按删除键时字符重复间隔，越小越快。2 = 30ms，为系统偏好设置滑条允许的最快值；1 = 15ms 可通过 defaults write 设置）
-defaults write -g KeyRepeat -int 1
+defaults write -g KeyRepeat -int 2
 
 # 按键重复延迟（按住一个字母后等多久开始连续输入，越小越短）
 defaults write -g InitialKeyRepeat -int 15
