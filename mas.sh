@@ -1,6 +1,9 @@
 #!/bin/bash
 set -eu
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BREWFILE="$SCRIPT_DIR/Brewfile"
+
 #############################
 ## 安装 App Store 应用（mas）##
 #############################
@@ -13,17 +16,19 @@ fi
 echo "📱 请确保已登录 App Store"
 mas signin --dialog 2>/dev/null || true
 
-echo "📦 安装 App Store 应用..."
+if ! command -v brew &>/dev/null; then
+    echo "❌ brew 未安装，请先运行 brew.sh"
+    exit 1
+fi
 
-mas install 1451544217  # Adobe Lightroom
-mas install 425264550   # Blackmagic Disk Speed Test
-mas install 571213070   # DaVinci Resolve
-mas install 1435957248  # Drafts
-mas install 1136220934  # Infuse
-mas install 409183694   # Keynote
-mas install 409203825   # Numbers
-mas install 409201541   # Pages
-mas install 425424353   # The Unarchiver
-mas install 836500024   # WeChat
+echo "📦 安装 Brewfile 中启用的 App Store 应用..."
+
+# Brewfile 是唯一准源。这里通过跳过 formula/cask，只安装启用的 mas 条目。
+export HOMEBREW_BUNDLE_BREW_SKIP
+export HOMEBREW_BUNDLE_CASK_SKIP
+HOMEBREW_BUNDLE_BREW_SKIP="$(brew bundle list --formula --file="$BREWFILE" | tr '\n' ' ')"
+HOMEBREW_BUNDLE_CASK_SKIP="$(brew bundle list --cask --file="$BREWFILE" | tr '\n' ' ')"
+
+brew bundle --file="$BREWFILE"
 
 echo "✅ App Store 应用安装完成"

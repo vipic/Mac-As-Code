@@ -1,45 +1,53 @@
 # 需要 sudo 授权，所以提到前面
-
 cask "logitech-options"
 cask "rode-central"
 cask "squirrel-app"
 
+# 必装：基础命令行工具
 brew "ffmpeg"
 brew "gnupg"
 brew "htop"
-brew "http-server"
 brew "just"
 brew "mas"
-brew "mole"
-brew "node"
-brew "ollama"
-brew "pnpm"
 brew "tree"
 
+# 开发工具：运行时、包管理、服务调试
+brew "http-server"
+brew "mole"
+brew "node"
+brew "pnpm"
+
+# 可选：本地 AI / 大模型
+# brew "ollama"
+
+# 必装：账号、浏览器、效率工具
 cask "1password"
-cask "android-platform-tools"
-cask "anki"
-cask "blender"
 cask "brave-browser"
-cask "charles"
 cask "chatgpt"
-cask "chatwise"
 cask "cleanshot"
-cask "devonthink"
-cask "downie"
-cask "iina"
-cask "insomnia"
-cask "iterm2"
-cask "jetbrains-toolbox"
 cask "keyboard-maestro"
-cask "netnewswire"
 cask "obsidian"
-cask "orbstack"
 cask "raycast"
-cask "skim"
 cask "sublime-text"
 cask "telegram"
 
+# 开发工具：终端、调试、容器、API 客户端
+# cask "android-platform-tools"
+cask "charles"
+# cask "insomnia"
+cask "iterm2"
+# cask "jetbrains-toolbox"
+cask "orbstack"
+
+# 媒体、创作、阅读
+# cask "anki"
+# cask "blender"
+# cask "chatwise"
+cask "devonthink"
+cask "downie"
+cask "iina"
+cask "netnewswire"
+cask "skim"
 
 # 并非每个电脑都安装
 # cask "calibre"
@@ -48,17 +56,20 @@ cask "telegram"
 # cask "ppduck"
 
 
-############################################################
-# mas 应用是跟随苹果账号的，如果id并不符合当前登录的账号，则无法安装 #
-############################################################
+# App Store 应用
+# 以这里为准；mas.sh 会读取本 Brewfile 中启用的 mas 条目，不再维护第二份列表。
+# mas 应用是跟随苹果账号的，如果 id 并不符合当前登录的账号，则无法安装。
 
-mas "Adobe Lightroom", id: 1451544217
-mas "Blackmagic Disk Speed Test", id: 425264550
-mas "DaVinci Resolve", id: 571213070
+# 可选：专业软件 / 大体积软件
+# mas "Adobe Lightroom", id: 1451544217
+# mas "Blackmagic Disk Speed Test", id: 425264550
+# mas "DaVinci Resolve", id: 571213070
+
+# 必装：日常 App Store 应用
 mas "Drafts", id: 1435957248
 mas "Infuse", id: 1136220934
-mas "Keynote", id: 409183694
-mas "Numbers", id: 409203825
-mas "Pages", id: 409201541
+mas "Keynote: Design Presentations", id: 361285480
+mas "Numbers: Make Spreadsheets", id: 361304891
+mas "Pages: Create Documents", id: 361309726
 mas "The Unarchiver", id: 425424353
 mas "WeChat", id: 836500024
