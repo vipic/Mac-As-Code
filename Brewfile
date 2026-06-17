@@ -73,3 +73,4 @@ mas "Numbers: Make Spreadsheets", id: 361304891
 mas "Pages: Create Documents", id: 361309726
 mas "The Unarchiver", id: 425424353
 mas "WeChat", id: 836500024
+mas "Xcode", id: 497799835
