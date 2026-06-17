@@ -5,6 +5,7 @@ cask "squirrel-app"
 
 # 必装：基础命令行工具
 brew "ffmpeg"
+brew "gh"
 brew "gnupg"
 brew "htop"
 brew "just"
