@@ -37,6 +37,8 @@ bash init.sh
 
 应用安装清单以 `Brewfile` 为准；`mas.sh` 只作为单独补装 App Store 应用的辅助脚本，会读取 `Brewfile` 中未被注释的 `mas` 条目，不再维护第二份应用列表。
 
+如果 `init.sh` 执行失败，可以运行 `bash doctor.sh` 检查 macOS、Xcode Command Line Tools、git、Homebrew、mas 和 Oh My Zsh 等状态，辅助定位问题。它只做检查，不会安装软件或修改系统配置。
+
 ## 其他
 
 本仓库配置均是基于作者本人使用习惯和个人需求，可以根据自己的需求修改。
