@@ -43,7 +43,9 @@ defaults write NSGlobalDomain AppleICUForce24HourTime -bool true
 # 隐藏 macOS 菜单中的图标
 defaults write -g NSMenuEnableActionImages -bool NO
 
-# Trackpad 三指水平滑动 = 在页面间滑动
-defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerHorizSwipeGesture -int 1
+# Trackpad 双指水平滑动 = 在页面间滑动（浏览器前进/后退等）
+defaults write NSGlobalDomain AppleEnableSwipeNavigateWithScrolls -bool true
+defaults write com.apple.AppleMultitouchTrackpad TrackpadHorizScroll -int 1
+defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadHorizScroll -int 1
 
 killall Finder
