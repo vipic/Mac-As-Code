@@ -8,7 +8,6 @@ brew "ffmpeg"
 brew "gh"
 brew "gnupg"
 brew "htop"
-brew "just"
 brew "mas"
 brew "tree"
 
