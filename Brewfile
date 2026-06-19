@@ -13,10 +13,11 @@ brew "tree"
 
 # 开发工具：运行时、包管理、服务调试
 brew "http-server"
-brew "mise"
 brew "mole"
 brew "node"
 brew "pnpm"
+# brew "just"
+# brew "mise"
 
 # 可选：本地 AI / 大模型
 # brew "ollama"
