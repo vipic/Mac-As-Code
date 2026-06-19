@@ -46,6 +46,23 @@ else
     fail "git 不存在"
 fi
 
+section "Git 用户信息"
+USER_CONFIG="$SCRIPT_DIR/configs/user.env"
+if [ -f "$USER_CONFIG" ]; then
+    GIT_USER_NAME=""
+    GIT_USER_EMAIL=""
+    # shellcheck source=/dev/null
+    source "$USER_CONFIG"
+
+    if [ -n "${GIT_USER_NAME:-}" ] && [ -n "${GIT_USER_EMAIL:-}" ]; then
+        pass "configs/user.env 已填写 Git 用户信息"
+    else
+        warn "configs/user.env 中 Git 用户信息未填写完整，init.sh 会跳过 Git 用户信息配置"
+    fi
+else
+    warn "未找到 configs/user.env，init.sh 会跳过 Git 用户信息配置"
+fi
+
 section "Homebrew"
 if command -v brew &>/dev/null; then
     pass "Homebrew 已安装：$(command -v brew)"

@@ -12,6 +12,9 @@ fi
 echo "🔧 修改系统设置..."
 source "$(dirname "$0")/defaults_config.sh"
 
+echo "👤 配置 Git 用户信息..."
+bash "$(dirname "$0")/git_config.sh"
+
 echo "🍺 安装 Homebrew 及软件..."
 source "$(dirname "$0")/brew.sh"
 
