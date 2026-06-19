@@ -55,6 +55,36 @@ bash init.sh
 
 如果 `init.sh` 执行失败，可以运行 `bash doctor.sh` 检查 macOS、Xcode Command Line Tools、git、Homebrew、mas 和 Oh My Zsh 等状态，辅助定位问题。它只做检查，不会安装软件或修改系统配置。
 
+## 离线迁移备份
+
+重置机器前，可以把关键个人配置备份到外置硬盘：
+
+```shell
+bash backup.sh
+```
+
+脚本默认会在 `~/Desktop/backup/reset-kit` 下创建一个带时间戳和机器名的快照目录。备份完成后，可以手动把整个快照目录复制到外置硬盘。快照会自带一份 `restore.sh`，并包含：
+
+- `~/.ssh`
+- `~/.gitconfig`
+- `~/.zshrc`
+- iTerm2 偏好
+- CleanShot 偏好
+- Keyboard Maestro 数据和偏好
+
+从外置硬盘恢复时，传入具体快照目录：
+
+```shell
+cd ~/Desktop/backup/reset-kit/20260619-120000-MacBook
+bash restore.sh
+```
+
+恢复脚本只读取自身所在的快照目录，不依赖本项目里的文件，也不需要额外指定路径。
+
+恢复脚本会先保留当前已有配置为 `.before-restore-时间戳`，再恢复快照。`.ssh`、Git 配置和 shell 配置属于个人敏感数据，只适合保存到可信的离线介质，不应提交到 GitHub。
+
+如果 macOS 首次提示 Terminal 或 Codex 访问桌面、文档或应用配置目录的权限，请允许访问；拒绝后对应备份或恢复步骤可能失败。
+
 ## 其他
 
 本仓库配置均是基于作者本人使用习惯和个人需求，可以根据自己的需求修改。
