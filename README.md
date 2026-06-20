@@ -71,6 +71,13 @@ bash backup.sh
 - iTerm2 偏好
 - CleanShot 偏好
 - Keyboard Maestro 数据和偏好
+- TextFlash 数据和偏好（通过应用内置脚本备份）
+
+TextFlash 默认读取 `/Applications/TextFlash.app` 内置的备份脚本。如果安装在其他路径，可以通过环境变量指定：
+
+```shell
+TEXTFLASH_APP_PATH="$HOME/Applications/TextFlash Dev.app" bash backup.sh
+```
 
 从外置硬盘恢复时，传入具体快照目录：
 
@@ -80,6 +87,8 @@ bash restore.sh
 ```
 
 恢复脚本只读取自身所在的快照目录，不依赖本项目里的文件，也不需要额外指定路径。
+
+恢复 TextFlash 时同样默认调用 `/Applications/TextFlash.app` 内置的恢复脚本；如果应用在其他路径，可以在执行恢复脚本时传入 `TEXTFLASH_APP_PATH`。
 
 恢复脚本会先保留当前已有配置为 `.before-restore-时间戳`，再恢复快照。`.ssh`、Git 配置和 shell 配置属于个人敏感数据，只适合保存到可信的离线介质，不应提交到 GitHub。
 

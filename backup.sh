@@ -96,6 +96,29 @@ quit_keyboard_maestro() {
     sleep 2
 }
 
+backup_textflash() {
+    textflash_app_path="${TEXTFLASH_APP_PATH:-/Applications/TextFlash.app}"
+    textflash_backup_script="$textflash_app_path/Contents/Resources/Tools/textflash-backup.sh"
+    rel_dest_root="application-backups/TextFlash"
+    dest_root="$SNAPSHOT_DIR/$rel_dest_root"
+
+    if [ ! -x "$textflash_backup_script" ]; then
+        echo "⚠️  跳过，未找到 TextFlash 备份脚本：$textflash_backup_script"
+        record_summary "SKIP" "TextFlash 数据" "未找到应用内备份脚本"
+        return 0
+    fi
+
+    mkdir -p "$dest_root"
+    if backup_dir="$("$textflash_backup_script" "$dest_root")"; then
+        rel_backup_dir="${backup_dir#$SNAPSHOT_DIR/}"
+        echo "✅ 已备份 TextFlash：$backup_dir"
+        record_summary "DONE" "TextFlash 数据" "$rel_backup_dir"
+    else
+        echo "⚠️  TextFlash 备份失败"
+        record_summary "SKIP" "TextFlash 数据" "备份脚本执行失败"
+    fi
+}
+
 write_restore_script() {
     restore_script="$SNAPSHOT_DIR/restore.sh"
 
@@ -188,6 +211,39 @@ quit_app() {
     fi
 }
 
+restore_textflash() {
+    textflash_app_path="${TEXTFLASH_APP_PATH:-/Applications/TextFlash.app}"
+    textflash_restore_script="$textflash_app_path/Contents/Resources/Tools/textflash-restore.sh"
+    backup_root="$SNAPSHOT_DIR/application-backups/TextFlash"
+
+    if [ ! -d "$backup_root" ]; then
+        echo "⚠️  跳过，快照中不存在 TextFlash 备份"
+        record_summary "SKIP" "TextFlash 数据" "快照中不存在 TextFlash 备份"
+        return 0
+    fi
+
+    if [ ! -x "$textflash_restore_script" ]; then
+        echo "⚠️  跳过，未找到 TextFlash 恢复脚本：$textflash_restore_script"
+        record_summary "SKIP" "TextFlash 数据" "未找到应用内恢复脚本"
+        return 0
+    fi
+
+    textflash_backup_dir="$(find "$backup_root" -mindepth 1 -maxdepth 1 -type d | sort | tail -n 1)"
+    if [ -z "$textflash_backup_dir" ] || [ ! -f "$textflash_backup_dir/textflash.db" ]; then
+        echo "⚠️  跳过，TextFlash 备份目录不完整：$backup_root"
+        record_summary "SKIP" "TextFlash 数据" "备份目录不完整"
+        return 0
+    fi
+
+    if "$textflash_restore_script" "$textflash_backup_dir"; then
+        echo "✅ 已恢复 TextFlash：$textflash_backup_dir"
+        record_summary "DONE" "TextFlash 数据" "TextFlash 应用数据"
+    else
+        echo "⚠️  TextFlash 恢复失败"
+        record_summary "SKIP" "TextFlash 数据" "恢复脚本执行失败"
+    fi
+}
+
 echo "♻️  从快照恢复：$SNAPSHOT_DIR"
 
 restore_path "SSH 配置" "home/.ssh" "$HOME/.ssh"
@@ -213,6 +269,8 @@ restore_path "Keyboard Maestro 数据" "application-support/Keyboard Maestro" "$
 import_defaults "Keyboard Maestro 偏好" "preferences/com.stairways.keyboardmaestro.plist" "com.stairways.keyboardmaestro"
 import_defaults "Keyboard Maestro Editor 偏好" "preferences/com.stairways.keyboardmaestro.editor.plist" "com.stairways.keyboardmaestro.editor"
 import_defaults "Keyboard Maestro Engine 偏好" "preferences/com.stairways.keyboardmaestro.engine.plist" "com.stairways.keyboardmaestro.engine"
+
+restore_textflash
 
 echo
 echo "==> 恢复汇总"
@@ -257,6 +315,8 @@ copy_path "Keyboard Maestro 数据" "$HOME/Library/Application Support/Keyboard 
 export_defaults "Keyboard Maestro 偏好" "com.stairways.keyboardmaestro" "preferences/com.stairways.keyboardmaestro.plist"
 export_defaults "Keyboard Maestro Editor 偏好" "com.stairways.keyboardmaestro.editor" "preferences/com.stairways.keyboardmaestro.editor.plist"
 export_defaults "Keyboard Maestro Engine 偏好" "com.stairways.keyboardmaestro.engine" "preferences/com.stairways.keyboardmaestro.engine.plist"
+
+backup_textflash
 
 printf '%b' "$SUMMARY" > "$SNAPSHOT_DIR/metadata/summary.tsv"
 
