@@ -62,6 +62,31 @@ copy_ssh() {
     record_summary "DONE" "SSH 配置" "$rel_dest"
 }
 
+copy_rime() {
+    src="$HOME/Library/Rime"
+    rel_dest="library/Rime"
+    dest="$SNAPSHOT_DIR/$rel_dest"
+
+    if [ ! -d "$src" ]; then
+        echo "⚠️  跳过，不存在：$src"
+        record_summary "SKIP" "Rime 配置" "不存在：$src"
+        return 0
+    fi
+
+    mkdir -p "$dest"
+    /usr/bin/rsync -a \
+        --exclude '.DS_Store' \
+        --exclude '/build/' \
+        --exclude '/plum/' \
+        --exclude 'LOCK' \
+        --exclude 'LOG' \
+        --exclude 'LOG.old' \
+        --exclude '*.log' \
+        "$src/" "$dest/"
+    echo "✅ 已备份：${src}（已排除 build、plum 和运行时日志/锁文件）"
+    record_summary "DONE" "Rime 配置" "$rel_dest"
+}
+
 export_defaults() {
     label="$1"
     domain="$2"
@@ -270,6 +295,9 @@ import_defaults "Keyboard Maestro 偏好" "preferences/com.stairways.keyboardmae
 import_defaults "Keyboard Maestro Editor 偏好" "preferences/com.stairways.keyboardmaestro.editor.plist" "com.stairways.keyboardmaestro.editor"
 import_defaults "Keyboard Maestro Engine 偏好" "preferences/com.stairways.keyboardmaestro.engine.plist" "com.stairways.keyboardmaestro.engine"
 
+restore_path "Rime 配置" "library/Rime" "$HOME/Library/Rime"
+import_defaults "Squirrel 偏好" "preferences/im.rime.inputmethod.Squirrel.plist" "im.rime.inputmethod.Squirrel"
+
 restore_textflash
 
 echo
@@ -315,6 +343,9 @@ copy_path "Keyboard Maestro 数据" "$HOME/Library/Application Support/Keyboard 
 export_defaults "Keyboard Maestro 偏好" "com.stairways.keyboardmaestro" "preferences/com.stairways.keyboardmaestro.plist"
 export_defaults "Keyboard Maestro Editor 偏好" "com.stairways.keyboardmaestro.editor" "preferences/com.stairways.keyboardmaestro.editor.plist"
 export_defaults "Keyboard Maestro Engine 偏好" "com.stairways.keyboardmaestro.engine" "preferences/com.stairways.keyboardmaestro.engine.plist"
+
+copy_rime
+export_defaults "Squirrel 偏好" "im.rime.inputmethod.Squirrel" "preferences/im.rime.inputmethod.Squirrel.plist"
 
 backup_textflash
 

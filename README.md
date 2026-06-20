@@ -71,6 +71,7 @@ bash backup.sh
 - iTerm2 偏好
 - CleanShot 偏好
 - Keyboard Maestro 数据和偏好
+- Rime/Squirrel 配置、词库和用户词库
 - TextFlash 数据和偏好（通过应用内置脚本备份）
 
 TextFlash 默认读取 `/Applications/TextFlash.app` 内置的备份脚本。如果安装在其他路径，可以通过环境变量指定：
