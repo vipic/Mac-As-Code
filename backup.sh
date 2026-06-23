@@ -269,6 +269,16 @@ restore_textflash() {
     fi
 }
 
+# 校验快照完整性
+if [ -f "$SNAPSHOT_DIR/SHA256SUMS" ]; then
+    echo "🔐 校验快照完整性..."
+    if ! (cd "$SNAPSHOT_DIR" && shasum -a 256 -c SHA256SUMS > /dev/null 2>&1); then
+        echo "❌ 快照完整性校验失败！文件可能已损坏或被篡改。"
+        exit 1
+    fi
+    echo "✅ 快照完整性校验通过"
+fi
+
 echo "♻️  从快照恢复：$SNAPSHOT_DIR"
 
 restore_path "SSH 配置" "home/.ssh" "$HOME/.ssh"
@@ -302,7 +312,7 @@ restore_textflash
 
 echo
 echo "==> 恢复汇总"
-printf '%b' "$SUMMARY" | while IFS=$'\t' read -r status item detail || [ -n "${status:-}" ]; do
+printf '%s' "$SUMMARY" | while IFS=$'\t' read -r status item detail || [ -n "${status:-}" ]; do
     [ -n "$status" ] || continue
     case "$status" in
         DONE) echo "✅ ${item:-未知项目}：已恢复到 ${detail:-未知位置}" ;;
@@ -349,11 +359,18 @@ export_defaults "Squirrel 偏好" "im.rime.inputmethod.Squirrel" "preferences/im
 
 backup_textflash
 
-printf '%b' "$SUMMARY" > "$SNAPSHOT_DIR/metadata/summary.tsv"
+echo "🔐 生成快照校验文件..."
+(cd "$SNAPSHOT_DIR" && find . -type f \
+    ! -name 'SHA256SUMS' \
+    ! -name 'restore.sh' \
+    ! -path './metadata/*' \
+    -exec shasum -a 256 {} \;) > "$SNAPSHOT_DIR/SHA256SUMS"
+
+printf '%s' "$SUMMARY" > "$SNAPSHOT_DIR/metadata/summary.tsv"
 
 echo
 echo "==> 备份汇总"
-printf '%b' "$SUMMARY" | while IFS=$'\t' read -r status item detail || [ -n "${status:-}" ]; do
+printf '%s' "$SUMMARY" | while IFS=$'\t' read -r status item detail || [ -n "${status:-}" ]; do
     [ -n "$status" ] || continue
     case "$status" in
         DONE) echo "✅ ${item:-未知项目}：已备份到 ${detail:-未知位置}" ;;
