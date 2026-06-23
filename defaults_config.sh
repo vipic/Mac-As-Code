@@ -48,4 +48,5 @@ defaults write NSGlobalDomain AppleEnableSwipeNavigateWithScrolls -bool true
 defaults write com.apple.AppleMultitouchTrackpad TrackpadHorizScroll -int 1
 defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadHorizScroll -int 1
 
+echo "🔄 重启 Finder 以应用设置..."
 killall Finder

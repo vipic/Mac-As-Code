@@ -63,9 +63,12 @@ defaults write com.apple.dock persistent-apps -array
 # 固定 Apps（macOS 26 之前的 LaunchPad）和 Sublime Text
 for app_path in "/System/Applications/Apps.app" "/Applications/Sublime Text.app"; do
     if [ -d "$app_path" ]; then
+        # 对路径中的 XML 特殊字符做转义，防止未来路径来源变动导致 plist 损坏
+        safe_path="$(printf '%s' "$app_path" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')"
         defaults write com.apple.dock persistent-apps -array-add \
-            "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>$app_path</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"
+            "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>${safe_path}</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"
     fi
 done
 
+echo "🔄 重启 Dock 以应用设置..."
 killall Dock
