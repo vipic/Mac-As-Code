@@ -18,9 +18,7 @@ record_summary() {
     status="$1"
     item="$2"
     detail="$3"
-
-    SUMMARY="${SUMMARY}${status}\t${item}\t${detail}
-"
+    SUMMARY+="$(printf '%s\t%s\t%s\n' "$status" "$item" "$detail")"
 }
 
 copy_path() {
@@ -165,9 +163,7 @@ record_summary() {
     status="$1"
     item="$2"
     detail="$3"
-
-    SUMMARY="${SUMMARY}${status}\t${item}\t${detail}
-"
+    SUMMARY+="$(printf '%s\t%s\t%s\n' "$status" "$item" "$detail")"
 }
 
 restore_path() {
