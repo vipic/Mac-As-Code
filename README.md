@@ -55,6 +55,8 @@ bash init.sh
 
 如果 `init.sh` 执行失败，可以运行 `bash doctor.sh` 检查 macOS、Xcode Command Line Tools、git、Homebrew、mas 和 Oh My Zsh 等状态，辅助定位问题。它只做检查，不会安装软件或修改系统配置。
 
+仓库的 GitHub Actions 只执行 `bash -n` 语法校验，不会在 CI 中运行会修改 macOS 设置或安装软件的脚本。
+
 `init.sh` 支持断点续跑，跳过已成功执行的前置步骤：
 
 ```shell
