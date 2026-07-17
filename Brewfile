@@ -4,10 +4,11 @@ cask "rode-central"
 cask "squirrel-app"
 
 # 必装：基础命令行工具
+brew "btop"
 brew "ffmpeg"
 brew "gh"
 brew "gnupg"
-brew "htop"
+brew "ripgrep"
 brew "mas"
 brew "tree"
 
@@ -16,8 +17,8 @@ brew "http-server"
 brew "mole"
 brew "node"
 brew "pnpm"
-# brew "just"
-# brew "mise"
+brew "just"
+brew "mise"
 
 # 可选：本地 AI / 大模型
 # brew "ollama"
@@ -25,7 +26,6 @@ brew "pnpm"
 # 必装：账号、浏览器、效率工具
 cask "1password"
 cask "brave-browser"
-cask "chatgpt"
 cask "cleanshot"
 cask "keyboard-maestro"
 cask "obsidian"
@@ -49,13 +49,13 @@ cask "devonthink"
 cask "downie"
 cask "iina"
 cask "netnewswire"
+cask "pngquant"
 cask "skim"
 
 # 并非每个电脑都安装
 # cask "calibre"
 # cask "qbittorrent"
 # cask "wireshark"
-# cask "ppduck"
 
 
 # App Store 应用
@@ -74,4 +74,5 @@ mas "Keynote: Design Presentations", id: 361285480
 mas "Numbers: Make Spreadsheets", id: 361304891
 mas "Pages: Create Documents", id: 361309726
 mas "The Unarchiver", id: 425424353
+mas "WeChat", id: 836500024
 mas "Xcode", id: 497799835
