@@ -1,21 +1,20 @@
-# 🛠️ macOS config and applications as code
+# macOS config and applications as code
 
-批量改系统设置、装软件。对外就三个命令：
+一键改系统设置和安装软件。
 
-| 命令 | 做什么 |
+| 命令 | 介绍 |
 |------|--------|
-| `sh init.sh`（或 `bash init.sh`） | 装机：分步多选 → 系统设置 → 软件 → Dock |
-| `sh backup.sh` | 备份个人数据（自动生成快照目录） |
-| `sh doctor.sh` | 检查环境（可选） |
+| `sh init.sh`（或 `bash init.sh`） | 分步多选，按需执行 |
+| `sh scripts/backup.sh` | 备份个人数据（自动生成快照目录），信息不上 Github。外置硬盘转移再恢复。非常个人化 |
+| `sh scripts/doctor.sh` | 检查环境（可选） |
 
-装机脚本可上 GitHub；`backup.sh` 生成的快照含密钥，只放本机或外置盘，恢复用快照里的 `restore.sh`。
+可改的清单在 `config/`（Brewfile、系统设置、Dock）；实现脚本在 `scripts/`。
 
 ## ⚠️ 注意
 
-- 受 GFW 影响，跑脚本前先解决网络。
-- 部分安装需要 `sudo`；可先 `sudo -v` 刷新时间戳。
+- 跑脚本前先解决网络连通性问题
 
-## 🚀 装机：`init.sh`
+## 🚀 更新设置和安装软件：`init.sh`
 
 ```shell
 sh init.sh
@@ -28,29 +27,20 @@ bash init.sh
 1. 系统设置（展开为具体 defaults 项）
 2. Dock（展开为具体 Dock 项）
 3. Homebrew 软件（formula / cask）
-4. 插件（Oh My Zsh 等）
-5. App Store 应用（若有）
+4. App Store 应用（若有）
+5. 插件（Oh My Zsh 等）
 
-操作：`↑↓` 移动，`空格` 选中/取消，`a` 全选，`n` 全不选，`Enter` 确认进入下一步，`q` 退出。确认后开始装机，中途不再问选项。
+操作：`↑↓` 移动，`空格` 选中/取消，`a` 全选，`n` 全不选，`Enter` 确认进入下一步，`q` 退出。确认后开始执行，中途不再询问，但可能需要管理员授权
 
 主线三块：系统设置 → 软件安装（Brewfile，含 mas）→ Dock。若勾选了 App Store 应用，会在装机前打开 App Store 并等待登录确认。
 
-```shell
-sh init.sh --yes             # 跳过多选，默认全选
-sh init.sh --from brew       # 从软件安装阶段续跑
-sh init.sh --skip-doctor     # 跳过装机前 doctor
-sh doctor.sh                 # 单独排查
-```
-
 软件按计划 **逐个**下载安装；失败单项会记录并继续。结束打印汇总，并写入项目内 `logs/init-*.tsv`。
-
-Git 用户名/邮箱不在装机里配置，随 `~/.gitconfig` 走备份 / 恢复。
 
 ## 💾 备份 / 恢复（独立管线）
 
 ```shell
 # 重置前备份 → 自动生成目录，拷到外置盘
-sh backup.sh
+sh scripts/backup.sh
 
 # 新机：先 sh init.sh 装好应用，再进入该次快照目录恢复
 cd ~/Desktop/backup/reset-kit/<时间戳>-<机器名>
@@ -63,4 +53,13 @@ sh restore.sh
 
 ## 📝 其他
 
-配置按个人习惯编写，可按需改。`Brewfile` 可用 `brew bundle dump` 更新。CI 只做 `bash -n` 语法检查。
+配置按个人习惯编写，可按需改。`config/Brewfile` 可用 `brew bundle dump` 更新。CI 只做 `bash -n` 语法检查。
+
+系统设置 / Dock 在 `config/defaults_config.sh`、`config/defaults_dock.sh` 里用「注释 + 命令」维护，格式：
+
+```shell
+# my-setting | 这一项的说明（多选里显示）
+defaults write NSGlobalDomain SomeKey -int 1
+```
+
+增减一项只需加/删这样一段；`init` 多选与执行会自动解析，不必再改目录表或 `case`。

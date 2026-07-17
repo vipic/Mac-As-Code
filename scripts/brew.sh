@@ -1,11 +1,12 @@
 #!/bin/sh
 set -u
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-# shellcheck source=lib/common.sh
-. "$SCRIPT_DIR/lib/common.sh"
+SCRIPTS_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPTS_DIR/.." && pwd)"
+# shellcheck source=common.sh
+. "$SCRIPTS_DIR/common.sh"
 
-BREWFILE="$SCRIPT_DIR/Brewfile"
+BREWFILE="$ROOT_DIR/config/Brewfile"
 FAIL_COUNT=0
 
 init_results
@@ -16,6 +17,7 @@ init_results
 
 if ! command -v brew >/dev/null 2>&1; then
     echo "🍺 安装 Homebrew..."
+    echo "🔐 安装 Homebrew 可能需要管理员密码，请留意终端或系统弹窗…"
     if ! /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
         echo "❌ Homebrew 安装失败"
         record_result "FAIL" "Homebrew" "安装失败"
@@ -99,6 +101,7 @@ install_cask() {
     fi
 
     echo "📦 [$index/$total] 正在安装：$name"
+    echo "🔐 部分 cask 安装会弹出管理员验证，请在本机确认…"
     if ! brew install --cask "$name"; then
         echo "❌ [$index/$total] 安装失败：$name"
         record_result "FAIL" "cask:$name" "安装失败"
@@ -143,10 +146,12 @@ if [ "$BREW_TOTAL" -eq 0 ]; then
 else
     echo "📦 按计划逐个安装软件（共 ${BREW_TOTAL}，Brewfile 中 formula ${FORMULA_TOTAL} + cask ${CASK_TOTAL}）..."
     echo "   单个失败会记录并继续，不会整批中断。"
+    echo "🔐 安装 GUI 应用（cask）时可能多次要求管理员密码，属正常情况。"
 fi
 
 BREW_INDEX=0
-while IFS='|' read -r type name _id; do
+# 用 fd3 读列表，避免 brew/cask 安装时 stdin 被占用而弹不出管理员验证
+while IFS='|' read -r type name _id <&3; do
     case "$type" in
         brew)
             if ! plan_item_enabled brew "$name"; then
@@ -163,7 +168,7 @@ while IFS='|' read -r type name _id; do
             install_cask "$name" "$BREW_INDEX" "$BREW_TOTAL" || true
             ;;
     esac
-done <"$BREW_LIST"
+done 3<"$BREW_LIST"
 
 rm -f "$BREW_LIST"
 
@@ -178,7 +183,7 @@ fi
 if [ "$RUN_MAS" -eq 1 ]; then
     echo
     echo "📱 处理 App Store 应用..."
-    if ! sh "$SCRIPT_DIR/mas.sh"; then
+    if ! sh "$SCRIPTS_DIR/mas.sh"; then
         FAIL_COUNT=$((FAIL_COUNT + 1))
     fi
 else

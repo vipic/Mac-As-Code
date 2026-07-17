@@ -19,4 +19,5 @@ jobs:
       - name: Check shell scripts
         run: |
           bash -n ./*.sh
-          bash -n ./lib/*.sh
+          bash -n ./scripts/*.sh
+          bash -n ./config/*.sh

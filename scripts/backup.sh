@@ -2,7 +2,7 @@
 set -eu
 
 if [ "$#" -gt 1 ]; then
-    echo "用法：bash backup.sh [备份目录]"
+    echo "用法：bash scripts/backup.sh [备份目录]"
     echo "默认备份目录：$HOME/Desktop/backup/reset-kit"
     exit 1
 fi

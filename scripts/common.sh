@@ -1,6 +1,6 @@
 #!/bin/sh
 # 共用辅助函数：结果记录、Brewfile 解析、分步多选 UI。
-# 由 init.sh / brew.sh / mas.sh 以 `.` 加载，不要直接执行。
+# 由 init.sh 与 scripts/ 下脚本以 `.` 加载，不要直接执行。
 # 兼容 sh 与 bash（避免 bash 独有语法）。
 
 # 初始化结果文件。若由 init.sh 导出 MAC_AS_CODE_RESULTS，则复用（不清空）；否则自建。
@@ -171,13 +171,6 @@ parse_brewfile() {
     done <"$brewfile"
 }
 
-# 把 Brewfile 解析结果写到临时文件，供调用方 while-read（兼容 sh）
-brewfile_list_file() {
-    brewfile="$1"
-    out="$2"
-    parse_brewfile "$brewfile" >"$out"
-}
-
 # 尽力检测本机是否已登录 Apple ID（mas 7 已移除 account/signin）。
 # 读的是系统 Apple 账户（MobileMeAccounts），多数情况下与 App Store「媒体与购买项目」一致，
 # 但不能 100% 保证等于 App Store 登录态。
@@ -191,26 +184,132 @@ apple_id_signed_in() {
     [ -n "$apple_id" ]
 }
 
+# defaults / dock 脚本中的可选项约定（注释 + 命令，便于增减）：
+#   # <id> | <说明>
+#   defaults write ...
+#   # 普通注释与多行命令可写在同一项内，直到下一个「# id |」行
+# 文件前半的 runner 代码不会被解析（从第一个项头开始）。
+
+# 列出注解项：输出 id|说明
+list_annotated_shell_items() {
+    file="$1"
+    [ -f "$file" ] || return 0
+    awk '
+        /^#[[:space:]]*[A-Za-z0-9_-]+[[:space:]]*\|/ {
+            line = $0
+            sub(/^#[[:space:]]*/, "", line)
+            id = line
+            sub(/[[:space:]]*\|.*/, "", id)
+            label = line
+            sub(/^[^|]*\|[[:space:]]*/, "", label)
+            if (id != "" && label != "") print id "|" label
+        }
+    ' "$file"
+}
+
+# 将当前注解项按计划执行（供 run_annotated_shell_items 使用）
+# 必须从终端跑（勿让 stdin 绑在解析用的临时文件上），否则 pwpolicy 等无法弹出管理员验证。
+_flush_annotated_item() {
+    if [ -z "${_ann_id:-}" ]; then
+        return 0
+    fi
+    if plan_item_enabled "$_ann_type" "$_ann_id"; then
+        echo "  → ${_ann_label}"
+        if [ -r /dev/tty ]; then
+            status=0
+            sh "$_ann_body" </dev/tty || status=$?
+        else
+            status=0
+            sh "$_ann_body" || status=$?
+        fi
+        if [ "$status" -eq 0 ]; then
+            record_result "OK" "${_ann_type}:${_ann_id}" "$_ann_label"
+            _ann_applied=$((_ann_applied + 1))
+        else
+            record_result "FAIL" "${_ann_type}:${_ann_id}" "$_ann_label"
+        fi
+    else
+        record_result "SKIP" "${_ann_type}:${_ann_id}" "未选中"
+    fi
+    : >"$_ann_body"
+    _ann_id=""
+    _ann_label=""
+}
+
+# 按计划执行注解项。成功应用的数量写入 _annotated_applied。
+run_annotated_shell_items() {
+    _ann_type="$1"
+    file="$2"
+    stream=""
+    line=""
+    marker="__ITEM__"
+
+    _annotated_applied=0
+    _ann_applied=0
+    _ann_id=""
+    _ann_label=""
+    [ -f "$file" ] || return 0
+
+    stream="$(mktemp -t mac-as-code-items.XXXXXX)"
+    _ann_body="$(mktemp -t mac-as-code-body.XXXXXX)"
+    : >"$_ann_body"
+
+    awk '
+        /^#[[:space:]]*[A-Za-z0-9_-]+[[:space:]]*\|/ {
+            line = $0
+            sub(/^#[[:space:]]*/, "", line)
+            id = line
+            sub(/[[:space:]]*\|.*/, "", id)
+            label = line
+            sub(/^[^|]*\|[[:space:]]*/, "", label)
+            if (id != "" && label != "") {
+                printf "__ITEM__\t%s\t%s\n", id, label
+                in_item = 1
+            }
+            next
+        }
+        in_item { print }
+    ' "$file" >"$stream"
+
+    # 用 fd3 读解析流，避免 while-read 重定向 stdin，导致子命令拿不到终端
+    while IFS= read -r line <&3 || [ -n "${line:-}" ]; do
+        case "$line" in
+            "${marker}"*)
+                _flush_annotated_item
+                _ann_id="$(printf '%s\n' "$line" | awk -F'\t' '{ print $2 }')"
+                _ann_label="$(printf '%s\n' "$line" | awk -F'\t' '{ print $3 }')"
+                ;;
+            *)
+                printf '%s\n' "$line" >>"$_ann_body"
+                ;;
+        esac
+    done 3<"$stream"
+
+    _flush_annotated_item
+    rm -f "$stream" "$_ann_body"
+    _annotated_applied="$_ann_applied"
+}
+
 # 计划文件格式：ON|type|name|extra 或 OFF|type|name|extra
 # type: defaults|dock|plugin|brew|cask|mas
 # defaults/dock 的 extra 为中文说明；mas 的 extra 为 App Store id
-# 参数：brewfile plan [script_dir]
+# 参数：brewfile plan [config_dir]
 create_default_plan() {
     brewfile="$1"
     plan="$2"
-    script_dir="${3:-}"
+    config_dir="${3:-}"
     tmp="$(mktemp -t mac-as-code-brewfile.XXXXXX)"
 
     parse_brewfile "$brewfile" >"$tmp"
     {
-        if [ -n "$script_dir" ] && [ -f "$script_dir/defaults_config.sh" ]; then
-            MAC_AS_CODE_LIST_CATALOG=1 sh "$script_dir/defaults_config.sh" | while IFS='|' read -r item_id item_label; do
+        if [ -n "$config_dir" ] && [ -f "$config_dir/defaults_config.sh" ]; then
+            list_annotated_shell_items "$config_dir/defaults_config.sh" | while IFS='|' read -r item_id item_label; do
                 [ -n "$item_id" ] || continue
                 printf 'ON|defaults|%s|%s\n' "$item_id" "$item_label"
             done
         fi
-        if [ -n "$script_dir" ] && [ -f "$script_dir/defaults_dock.sh" ]; then
-            MAC_AS_CODE_LIST_CATALOG=1 sh "$script_dir/defaults_dock.sh" | while IFS='|' read -r item_id item_label; do
+        if [ -n "$config_dir" ] && [ -f "$config_dir/defaults_dock.sh" ]; then
+            list_annotated_shell_items "$config_dir/defaults_dock.sh" | while IFS='|' read -r item_id item_label; do
                 [ -n "$item_id" ] || continue
                 printf 'ON|dock|%s|%s\n' "$item_id" "$item_label"
             done
@@ -260,35 +359,6 @@ plan_item_enabled() {
         return 0
     fi
     plan_has_on "$MAC_AS_CODE_PLAN" "$type" "$name"
-}
-
-plan_label() {
-    type="$1"
-    name="$2"
-    extra="${3:-}"
-    case "$type" in
-        defaults|dock)
-            if [ -n "$extra" ]; then
-                printf '%s' "$extra"
-            else
-                printf '%s' "$name"
-            fi
-            ;;
-        plugin)
-            if [ -n "$extra" ]; then
-                printf '%s' "$extra"
-            else
-                case "$name" in
-                    oh-my-zsh) printf '%s' "Oh My Zsh" ;;
-                    *) printf '%s' "$name" ;;
-                esac
-            fi
-            ;;
-        brew) printf '[brew] %s' "$name" ;;
-        cask) printf '[cask] %s' "$name" ;;
-        mas) printf '%s' "$name" ;;
-        *) printf '%s/%s' "$type" "$name" ;;
-    esac
 }
 
 # types 形如 "module" 或 "brew|cask" 或 "mas"
@@ -562,12 +632,12 @@ edit_plan_interactive() {
     checkbox_select_step "步骤 1/5：系统设置（逐项确认）" "defaults" "$plan" || return $?
     checkbox_select_step "步骤 2/5：Dock（逐项确认）" "dock" "$plan" || return $?
     checkbox_select_step "步骤 3/5：Homebrew 软件（formula / cask）" "brew|cask" "$plan" || return $?
-    checkbox_select_step "步骤 4/5：插件（Oh My Zsh 等）" "plugin" "$plan" || return $?
     if [ "$(plan_count_types "$plan" "mas")" -gt 0 ]; then
-        checkbox_select_step "步骤 5/5：App Store 应用（mas）" "mas" "$plan" || return $?
+        checkbox_select_step "步骤 4/5：App Store 应用（mas）" "mas" "$plan" || return $?
     else
-        echo "ℹ️  步骤 5/5：Brewfile 中无 App Store 应用，跳过"
+        echo "ℹ️  步骤 4/5：Brewfile 中无 App Store 应用，跳过"
     fi
+    checkbox_select_step "步骤 5/5：插件（Oh My Zsh 等）" "plugin" "$plan" || return $?
 
     echo
     echo "选项已确认，开始装机（中途不再询问模块选项）。"

@@ -1,11 +1,12 @@
 #!/bin/sh
 set -u
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-# shellcheck source=lib/common.sh
-. "$SCRIPT_DIR/lib/common.sh"
+SCRIPTS_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPTS_DIR/.." && pwd)"
+# shellcheck source=common.sh
+. "$SCRIPTS_DIR/common.sh"
 
-BREWFILE="$SCRIPT_DIR/Brewfile"
+BREWFILE="$ROOT_DIR/config/Brewfile"
 FAIL_COUNT=0
 
 init_results
@@ -47,7 +48,7 @@ if [ "$MAS_TOTAL" -eq 0 ]; then
 fi
 
 if ! command -v brew >/dev/null 2>&1; then
-    echo "❌ brew 未安装，请先运行 brew.sh"
+    echo "❌ brew 未安装，请先运行 scripts/brew.sh"
     record_result "FAIL" "mas" "brew 未安装"
     rm -f "$MAS_LIST"
     finalize_results_if_owned
@@ -147,12 +148,12 @@ echo "📦 逐个安装 App Store 应用..."
 echo "   单个失败会记录并继续，不会整批中断。"
 
 MAS_INDEX=0
-while IFS='|' read -r type name id; do
+while IFS='|' read -r type name id <&3; do
     [ "$type" = "mas" ] || continue
     plan_item_enabled mas "$name" || continue
     MAS_INDEX=$((MAS_INDEX + 1))
     install_mas_app "$name" "$id" "$MAS_INDEX" "$MAS_TOTAL" || true
-done <"$MAS_LIST"
+done 3<"$MAS_LIST"
 
 rm -f "$MAS_LIST"
 finalize_results_if_owned

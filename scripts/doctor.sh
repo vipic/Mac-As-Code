@@ -1,14 +1,16 @@
 #!/bin/sh
 set -u
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPTS_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPTS_DIR/.." && pwd)"
+BREWFILE="$ROOT_DIR/config/Brewfile"
 FAILED=0
 MODE="all"
 
 usage() {
     cat <<'EOF'
-用法：sh doctor.sh [--pre|--post|--all]
-      bash doctor.sh 亦可
+用法：sh scripts/doctor.sh [--pre|--post|--all]
+      bash scripts/doctor.sh 亦可
 
   --pre   装机前硬门槛（CLT、git 可用性、Brewfile）；init.sh 开头调用
   --post  装机后验收（brew / mas / Oh My Zsh）；可手动排查时用
@@ -78,8 +80,8 @@ check_prereqs() {
     fi
 
     section "Brewfile"
-    if [ -f "$SCRIPT_DIR/Brewfile" ]; then
-        pass "Brewfile 存在：$SCRIPT_DIR/Brewfile"
+    if [ -f "$BREWFILE" ]; then
+        pass "Brewfile 存在：$BREWFILE"
     else
         fail "未找到 Brewfile，无法按清单安装软件"
     fi
@@ -89,7 +91,7 @@ check_installed() {
     section "Homebrew"
     if command -v brew >/dev/null 2>&1; then
         pass "Homebrew 已安装：$(command -v brew)"
-        if brew bundle list --all --file="$SCRIPT_DIR/Brewfile" >/dev/null 2>&1; then
+        if brew bundle list --all --file="$BREWFILE" >/dev/null 2>&1; then
             pass "Brewfile 可解析"
         else
             warn "Brewfile 解析检查未通过，可能是 Homebrew 缓存权限或网络问题"

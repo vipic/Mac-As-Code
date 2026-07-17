@@ -1,12 +1,14 @@
 #!/bin/sh
 set -u
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-# shellcheck source=lib/common.sh
-. "$SCRIPT_DIR/lib/common.sh"
+ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+CONFIG_DIR="$ROOT_DIR/config"
+SCRIPTS_DIR="$ROOT_DIR/scripts"
+# shellcheck source=scripts/common.sh
+. "$SCRIPTS_DIR/common.sh"
 
 if ! command -v create_default_plan >/dev/null 2>&1; then
-    echo "❌ 未能加载 lib/common.sh（${SCRIPT_DIR}/lib/common.sh）"
+    echo "❌ 未能加载 scripts/common.sh（${SCRIPTS_DIR}/common.sh）"
     echo "   请在仓库根目录执行：sh init.sh  或  bash init.sh"
     exit 1
 fi
@@ -77,7 +79,7 @@ fi
 if [ "$SKIP_DOCTOR" -eq 0 ]; then
     echo
     echo "======== 装机前检查 ========"
-    if ! sh "$SCRIPT_DIR/doctor.sh" --pre; then
+    if ! sh "$SCRIPTS_DIR/doctor.sh" --pre; then
         echo "⚠️  装机前检查未通过；若仍要继续，可用：sh init.sh --skip-doctor"
         exit 1
     fi
@@ -87,11 +89,11 @@ PLAN_FILE="$(mktemp -t mac-as-code-plan.XXXXXX)"
 export MAC_AS_CODE_PLAN="$PLAN_FILE"
 MAC_AS_CODE_RESULTS="$(mktemp -t mac-as-code.XXXXXX)"
 export MAC_AS_CODE_RESULTS
-export MAC_AS_CODE_LOG_DIR="$SCRIPT_DIR/logs"
+export MAC_AS_CODE_LOG_DIR="$ROOT_DIR/logs"
 : >"$MAC_AS_CODE_RESULTS"
 trap 'rm -f "$MAC_AS_CODE_RESULTS" "$PLAN_FILE"' EXIT
 
-create_default_plan "$SCRIPT_DIR/Brewfile" "$PLAN_FILE" "$SCRIPT_DIR"
+create_default_plan "$CONFIG_DIR/Brewfile" "$PLAN_FILE" "$CONFIG_DIR"
 edit_plan_interactive "$PLAN_FILE" "$YES_MODE"
 plan_status=$?
 if [ "$plan_status" -eq 2 ]; then
@@ -165,7 +167,7 @@ STEP_FAIL_COUNT=0
 run_step() {
     name="$1"
     description="$2"
-    script="$3"
+    script_path="$3"
 
     if [ -n "$START_FROM" ] && [ "$START_FROM" != "$name" ]; then
         echo "⏭️  跳过：${description}"
@@ -176,7 +178,7 @@ run_step() {
 
     echo
     echo "$description"
-    if sh "$SCRIPT_DIR/$script"; then
+    if sh "$script_path"; then
         record_result "OK" "步骤:$name" "完成"
     else
         echo "⚠️  步骤失败：${name}（已记录，继续执行后续步骤）"
@@ -189,7 +191,7 @@ maybe_run_type() {
     type_name="$1"
     step_name="$2"
     description="$3"
-    script="$4"
+    script_path="$4"
 
     if ! plan_has_on "$PLAN_FILE" "$type_name"; then
         echo
@@ -197,7 +199,7 @@ maybe_run_type() {
         record_result "SKIP" "步骤:$step_name" "用户未选中"
         return 0
     fi
-    run_step "$step_name" "$description" "$script"
+    run_step "$step_name" "$description" "$script_path"
 }
 
 maybe_run_brew() {
@@ -212,25 +214,25 @@ maybe_run_brew() {
         return 0
     fi
 
-    run_step "brew" "🍺 安装 Homebrew 及软件..." "brew.sh"
+    run_step "brew" "🍺 安装 Homebrew 及软件..." "$SCRIPTS_DIR/brew.sh"
 }
 
-maybe_run_type "defaults" "defaults" "🔧 修改系统设置..." "defaults_config.sh"
+maybe_run_type "defaults" "defaults" "🔧 修改系统设置..." "$CONFIG_DIR/defaults_config.sh"
 maybe_run_brew
 
 if plan_has_on "$PLAN_FILE" "plugin" "oh-my-zsh"; then
-    run_step "zsh" "🐚 安装 Oh My Zsh..." "oh_my_zsh.sh"
+    run_step "zsh" "🐚 安装 Oh My Zsh..." "$SCRIPTS_DIR/oh_my_zsh.sh"
 else
     echo
     echo "⏭️  跳过：🐚 安装 Oh My Zsh...（未选中）"
     record_result "SKIP" "步骤:zsh" "用户未选中"
 fi
 
-maybe_run_type "dock" "dock" "🖥️  配置 Dock..." "defaults_dock.sh"
+maybe_run_type "dock" "dock" "🖥️  配置 Dock..." "$CONFIG_DIR/defaults_dock.sh"
 
 print_results_summary "$MAC_AS_CODE_RESULTS"
 summary_status=$?
-persist_results_log "$MAC_AS_CODE_RESULTS" "init" "$SCRIPT_DIR"
+persist_results_log "$MAC_AS_CODE_RESULTS" "init" "$ROOT_DIR"
 
 echo
 if [ "$summary_status" -eq 0 ] && [ "$STEP_FAIL_COUNT" -eq 0 ]; then
