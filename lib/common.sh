@@ -26,6 +26,24 @@ record_result() {
     printf '%s\t%s\t%s\n' "$status" "$item" "$detail" >>"$MAC_AS_CODE_RESULTS"
 }
 
+# 将结果文件持久化到 ~/Library/Logs/mac-as-code/
+# 参数：结果文件路径、日志名前缀（如 init）
+persist_results_log() {
+    local file="${1:-}"
+    local prefix="${2:-run}"
+    local log_dir log_file
+
+    if [ -z "$file" ] || [ ! -f "$file" ]; then
+        return 0
+    fi
+
+    log_dir="${MAC_AS_CODE_LOG_DIR:-$HOME/Library/Logs/mac-as-code}"
+    mkdir -p "$log_dir"
+    log_file="$log_dir/${prefix}-$(date +%Y%m%d-%H%M%S).tsv"
+    /usr/bin/ditto "$file" "$log_file"
+    echo "📄 结果已保存：${log_file}"
+}
+
 # 打印成功 / 失败 / 跳过汇总
 print_results_summary() {
     local file="${1:-${MAC_AS_CODE_RESULTS:-}}"

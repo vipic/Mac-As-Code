@@ -112,6 +112,7 @@ install_cask() {
 }
 
 # 先统计数量，再按 Brewfile 顺序安装（formula / cask）；mas 交给 mas.sh
+# 进度编号按 Brewfile 总顺序统一递增，避免 cask/formula 分套计数导致 [3/19] 后突然变成 [1/14]
 FORMULA_TOTAL=0
 CASK_TOTAL=0
 while IFS='|' read -r type _name _id; do
@@ -121,21 +122,22 @@ while IFS='|' read -r type _name _id; do
     esac
 done < <(parse_brewfile "$BREWFILE")
 
+BREW_TOTAL=$((FORMULA_TOTAL + CASK_TOTAL))
+
 echo
-echo "📦 按 Brewfile 逐个安装软件（formula ${FORMULA_TOTAL} + cask ${CASK_TOTAL}）..."
+echo "📦 按 Brewfile 逐个安装软件（共 ${BREW_TOTAL}：formula ${FORMULA_TOTAL} + cask ${CASK_TOTAL}）..."
 echo "   单个失败会记录并继续，不会整批中断。"
 
-FORMULA_INDEX=0
-CASK_INDEX=0
+BREW_INDEX=0
 while IFS='|' read -r type name _id; do
     case "$type" in
         brew)
-            FORMULA_INDEX=$((FORMULA_INDEX + 1))
-            install_formula "$name" "$FORMULA_INDEX" "$FORMULA_TOTAL" || true
+            BREW_INDEX=$((BREW_INDEX + 1))
+            install_formula "$name" "$BREW_INDEX" "$BREW_TOTAL" || true
             ;;
         cask)
-            CASK_INDEX=$((CASK_INDEX + 1))
-            install_cask "$name" "$CASK_INDEX" "$CASK_TOTAL" || true
+            BREW_INDEX=$((BREW_INDEX + 1))
+            install_cask "$name" "$BREW_INDEX" "$BREW_TOTAL" || true
             ;;
     esac
 done < <(parse_brewfile "$BREWFILE")

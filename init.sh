@@ -69,6 +69,7 @@ run_step "dock"     "🖥️  配置 Dock..."                 "defaults_dock.sh"
 
 print_results_summary "$MAC_AS_CODE_RESULTS"
 summary_status=$?
+persist_results_log "$MAC_AS_CODE_RESULTS" "init"
 
 echo
 if [ "$summary_status" -eq 0 ] && [ "$STEP_FAIL_COUNT" -eq 0 ]; then
