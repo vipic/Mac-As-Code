@@ -38,11 +38,11 @@ bash init.sh
 ```shell
 sh init.sh --yes             # 跳过多选，默认全选
 sh init.sh --from brew       # 从软件安装阶段续跑
-sh init.sh --skip-doctor     # 跳过首尾 doctor
+sh init.sh --skip-doctor     # 跳过装机前 doctor
 sh doctor.sh                 # 单独排查
 ```
 
-软件按计划 **逐个**下载安装；失败单项会记录并继续。结束打印汇总，并写入 `~/Library/Logs/mac-as-code/init-*.tsv`。
+软件按计划 **逐个**下载安装；失败单项会记录并继续。结束打印汇总，并写入项目内 `logs/init-*.tsv`。
 
 Git 用户名/邮箱不在装机里配置，随 `~/.gitconfig` 走备份 / 恢复。
 

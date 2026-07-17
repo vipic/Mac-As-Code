@@ -11,7 +11,7 @@ usage() {
       bash doctor.sh 亦可
 
   --pre   装机前硬门槛（CLT、git 可用性、Brewfile）；init.sh 开头调用
-  --post  装机后验收（brew / mas / Oh My Zsh）；init.sh 结尾调用
+  --post  装机后验收（brew / mas / Oh My Zsh）；可手动排查时用
   --all   全部检查（默认；单独排查时用）
 EOF
 }

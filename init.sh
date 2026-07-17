@@ -22,7 +22,7 @@ usage() {
       bash init.sh 亦可
 
 装机主入口：分步多选（↑↓ / 空格）→ 系统设置 → 软件 → Dock。
-若包含 App Store 应用，会在最开始打开 App Store 并等待登录确认。
+默认先跑装机前 doctor；结果汇总保存到项目内 logs/（无装机后 doctor）。
 
 步骤名：defaults, brew, zsh, dock
 示例：
@@ -30,7 +30,7 @@ usage() {
   bash init.sh
   sh init.sh --from brew
   sh init.sh --yes              # 跳过多选，默认全选
-  sh init.sh --skip-doctor
+  sh init.sh --skip-doctor      # 跳过装机前检查
 
 Git 用户信息随 backup / restore 迁移 ~/.gitconfig，不在装机流程里配置。
 EOF
@@ -87,6 +87,7 @@ PLAN_FILE="$(mktemp -t mac-as-code-plan.XXXXXX)"
 export MAC_AS_CODE_PLAN="$PLAN_FILE"
 MAC_AS_CODE_RESULTS="$(mktemp -t mac-as-code.XXXXXX)"
 export MAC_AS_CODE_RESULTS
+export MAC_AS_CODE_LOG_DIR="$SCRIPT_DIR/logs"
 : >"$MAC_AS_CODE_RESULTS"
 trap 'rm -f "$MAC_AS_CODE_RESULTS" "$PLAN_FILE"' EXIT
 
@@ -100,16 +101,10 @@ if [ "$plan_status" -ne 0 ]; then
     exit "$plan_status"
 fi
 
-set_plan_all_type_mas_off() {
-    tmp="$(mktemp -t mac-as-code-plan.XXXXXX)"
-    awk -F'|' 'BEGIN{OFS="|"} $2=="mas"{$1="OFF"} {print}' "$PLAN_FILE" >"$tmp"
-    /usr/bin/ditto "$tmp" "$PLAN_FILE"
-    rm -f "$tmp"
-}
-
-# App Store：若计划里有 mas，在装机开始前登录并确认清单，之后不再打断
+# App Store：多选已决定装哪些；这里只处理登录，不再问「继续/跳过全部」
 confirm_mas_upfront() {
     mas_on=0
+    apple_id=""
 
     while IFS='|' read -r state type name id; do
         [ "$state" = "ON" ] && [ "$type" = "mas" ] || continue
@@ -122,44 +117,44 @@ confirm_mas_upfront() {
     fi
 
     echo
-    echo "======== App Store 登录（共 ${mas_on} 个应用）========"
-    echo "将安装以下 App Store 应用（请确认账号能获取它们）："
+    echo "======== App Store（将按多选安装 ${mas_on} 个）========"
     while IFS='|' read -r state type name id; do
         [ "$state" = "ON" ] && [ "$type" = "mas" ] || continue
-        echo "  - ${name}（id: ${id}）"
+        echo "  - ${name}"
     done <"$PLAN_FILE"
-    echo
 
-    if [ "$YES_MODE" = "1" ] || [ ! -t 0 ]; then
-        echo "ℹ️  非交互模式：假定已登录 App Store，稍后直接安装"
+    if apple_id_signed_in; then
+        apple_id="$(apple_id_account)"
+        echo "✅ 已检测到 Apple ID：${apple_id}，稍后按清单安装"
         export MAC_AS_CODE_MAS_READY=1
         return 0
     fi
 
-    echo "请先在 App Store 登录对应的 Apple 账号（脚本会打开 App Store）。"
-    echo "登录并确认无误后回到此终端："
-    echo "  - 直接按 Enter：继续（之后不再询问 App Store）"
-    echo "  - 输入 s 后按 Enter：跳过全部 App Store 应用"
+    if [ "$YES_MODE" = "1" ] || [ ! -t 0 ]; then
+        echo "ℹ️  非交互模式：未检测到 Apple ID，仍尝试安装（可能失败）"
+        export MAC_AS_CODE_MAS_READY=1
+        return 0
+    fi
+
+    echo "⚠️  未检测到 Apple ID，打开 App Store，请登录后按 Enter 继续"
     open -a "App Store" 2>/dev/null || true
 
     while true; do
-        printf "App Store 已登录？[Enter=继续 / s=全部跳过] > "
+        printf "登录完成后按 Enter > "
         if ! read -r answer; then
-            answer="s"
+            echo
+            echo "⚠️  无法确认登录，仍继续尝试安装"
+            export MAC_AS_CODE_MAS_READY=1
+            return 0
         fi
-        case "$answer" in
-            s|S)
-                echo "⏭️  已跳过全部 App Store 应用"
-                export MAC_AS_CODE_SKIP_MAS=1
-                set_plan_all_type_mas_off
-                return 0
-                ;;
-            *)
-                export MAC_AS_CODE_MAS_READY=1
-                echo "✅ 已确认 App Store 登录，开始装机"
-                return 0
-                ;;
-        esac
+        if apple_id_signed_in; then
+            apple_id="$(apple_id_account)"
+            echo "✅ 已检测到 Apple ID：${apple_id}"
+            export MAC_AS_CODE_MAS_READY=1
+            return 0
+        fi
+        echo "仍未检测到登录，请登录后再按 Enter（或 Ctrl+C 中止）"
+        open -a "App Store" 2>/dev/null || true
     done
 }
 
@@ -235,15 +230,7 @@ maybe_run_type "dock" "dock" "🖥️  配置 Dock..." "defaults_dock.sh"
 
 print_results_summary "$MAC_AS_CODE_RESULTS"
 summary_status=$?
-persist_results_log "$MAC_AS_CODE_RESULTS" "init"
-
-if [ "$SKIP_DOCTOR" -eq 0 ]; then
-    echo
-    echo "======== 装机后检查 ========"
-    if ! sh "$SCRIPT_DIR/doctor.sh" --post; then
-        STEP_FAIL_COUNT=$((STEP_FAIL_COUNT + 1))
-    fi
-fi
+persist_results_log "$MAC_AS_CODE_RESULTS" "init" "$SCRIPT_DIR"
 
 echo
 if [ "$summary_status" -eq 0 ] && [ "$STEP_FAIL_COUNT" -eq 0 ]; then
@@ -252,5 +239,5 @@ if [ "$summary_status" -eq 0 ] && [ "$STEP_FAIL_COUNT" -eq 0 ]; then
     exit 0
 fi
 
-echo "⚠️  执行结束，但仍有失败项；请根据上方汇总手动处理，或重新运行失败相关步骤。"
+echo "⚠️  执行结束，但仍有失败项；请根据上方汇总与 logs/ 中的报告手动处理。"
 exit 1

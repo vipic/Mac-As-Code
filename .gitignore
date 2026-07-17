@@ -1,7 +1,9 @@
 .env
 .DS_Store
 .idea/
+.cursor/
 configs/
+logs/
 
 # macOS / editor residuals
 *.swp

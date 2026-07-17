@@ -13,19 +13,19 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # 输出：id|说明（供多选 UI / 计划生成）
 list_defaults_items() {
     cat <<'EOF'
-menu-bar-visible|始终显示菜单栏（不自动隐藏）
+menu-bar-visible|始终显示菜单栏（关闭自动隐藏）
 fullscreen-hide-menu|全屏时隐藏菜单栏
 measurement-cm|计量单位：厘米
-temp-celsius|温度显示：摄氏度
-disable-text-replacement|禁止系统文本替换（避免 macOS 误触发）
-release-cmd-d|释放快捷键 ⌘D（查字典）
-simple-password|允许简单密码（清除复杂密码策略）
-key-repeat-fast|按键重复速度加快
-key-repeat-delay-short|按键重复延迟缩短
-finder-list-view|Finder 使用列表视图
-finder-show-extensions|Finder 显示文件扩展名
-clock-24h|日期显示 24 小时制（重启后生效）
-trackpad-swipe-navigate|触控板双指水平滑动：前进/后退
+temp-celsius|温度单位：摄氏度
+disable-text-replacement|关闭系统文本替换（避免输入时被自动替换）
+release-cmd-d|禁用 ⌘D 查字典快捷键（释放该组合键）
+simple-password|清除账户密码策略（已清空则跳过；若仍有策略需管理员认证）
+key-repeat-fast|加快按键重复速度（KeyRepeat=2）
+key-repeat-delay-short|缩短按键重复前的延迟（InitialKeyRepeat=15）
+finder-list-view|Finder 默认使用列表视图
+finder-show-extensions|Finder 显示所有文件扩展名
+clock-24h|强制 24 小时制（可能需注销/重启后生效）
+trackpad-swipe-navigate|触控板双指左右滑：在页面间前进/后退
 EOF
 }
 
@@ -57,7 +57,22 @@ apply_defaults_item() {
             defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dict><key>enabled</key><false/></dict>'
             ;;
         simple-password)
-            pwpolicy -clearaccountpolicies
+            # 策略已空时再执行 -clearaccountpolicies 仍会弹密码，非交互下会失败。
+            # 先检查全局策略是否已无 <key>，已空则直接视为成功。
+            if ! pwpolicy -getaccountpolicies 2>/dev/null | grep -q '<key>'; then
+                echo "ℹ️  账户密码策略已为空，跳过清除"
+                return 0
+            fi
+            echo "🔐 清除密码策略需要管理员认证…"
+            if pwpolicy -clearaccountpolicies; then
+                return 0
+            fi
+            # 终端密码失败时，尝试图形化提权（本机 GUI 可用时）
+            if command -v osascript >/dev/null 2>&1; then
+                osascript -e 'do shell script "pwpolicy -clearaccountpolicies" with administrator privileges'
+                return $?
+            fi
+            return 1
             ;;
         key-repeat-fast)
             defaults write -g KeyRepeat -int 2

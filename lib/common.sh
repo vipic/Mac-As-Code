@@ -27,16 +27,24 @@ record_result() {
     printf '%s\t%s\t%s\n' "$status" "$item" "$detail" >>"$MAC_AS_CODE_RESULTS"
 }
 
-# 将结果文件持久化到 ~/Library/Logs/mac-as-code/
+# 将结果文件持久化到项目内 logs/（或 MAC_AS_CODE_LOG_DIR）
 persist_results_log() {
     file="${1:-}"
     prefix="${2:-run}"
+    base_dir="${3:-}"
 
     if [ -z "$file" ] || [ ! -f "$file" ]; then
         return 0
     fi
 
-    log_dir="${MAC_AS_CODE_LOG_DIR:-$HOME/Library/Logs/mac-as-code}"
+    if [ -n "${MAC_AS_CODE_LOG_DIR:-}" ]; then
+        log_dir="$MAC_AS_CODE_LOG_DIR"
+    elif [ -n "$base_dir" ]; then
+        log_dir="$base_dir/logs"
+    else
+        log_dir="./logs"
+    fi
+
     mkdir -p "$log_dir"
     log_file="$log_dir/${prefix}-$(date +%Y%m%d-%H%M%S).tsv"
     /usr/bin/ditto "$file" "$log_file"
@@ -168,6 +176,19 @@ brewfile_list_file() {
     brewfile="$1"
     out="$2"
     parse_brewfile "$brewfile" >"$out"
+}
+
+# 尽力检测本机是否已登录 Apple ID（mas 7 已移除 account/signin）。
+# 读的是系统 Apple 账户（MobileMeAccounts），多数情况下与 App Store「媒体与购买项目」一致，
+# 但不能 100% 保证等于 App Store 登录态。
+apple_id_account() {
+    defaults read MobileMeAccounts Accounts 2>/dev/null \
+        | awk -F'"' '/AccountID/ { print $2; exit }'
+}
+
+apple_id_signed_in() {
+    apple_id="$(apple_id_account)"
+    [ -n "$apple_id" ]
 }
 
 # 计划文件格式：ON|type|name|extra 或 OFF|type|name|extra

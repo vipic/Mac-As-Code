@@ -7,7 +7,6 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 BREWFILE="$SCRIPT_DIR/Brewfile"
 FAIL_COUNT=0
-SKIP_ALL_MAS=0
 
 init_results
 
@@ -16,7 +15,7 @@ init_results
 #############################
 
 if [ "${MAC_AS_CODE_SKIP_MAS:-}" = "1" ]; then
-    echo "⏭️  已跳过全部 App Store 应用"
+    echo "⏭️  计划中未选中 App Store 应用"
     finalize_results_if_owned
     exit 0
 fi
@@ -94,44 +93,28 @@ fi
 ## 登录门禁：init 开头已确认则可跳过；单独运行 mas.sh 时仍询问
 ##############################################
 
-if [ "${MAC_AS_CODE_MAS_READY:-}" = "1" ]; then
-    echo "✅ App Store 登录已在装机开始时确认，直接安装"
+# 装机计划里已多选过；此处只补登录，不再问「全部跳过/继续」
+if [ "${MAC_AS_CODE_MAS_READY:-}" = "1" ] || apple_id_signed_in; then
+    if apple_id_signed_in; then
+        echo "✅ Apple ID：$(apple_id_account)，按多选清单安装"
+    else
+        echo "✅ 按多选清单安装 App Store 应用"
+    fi
 else
-    echo
-    echo "📱 即将安装 $MAS_TOTAL 个 App Store 应用。"
-    echo "   请先在 App Store 登录对应的 Apple 账号（脚本会打开 App Store）。"
-    echo "   登录完成后回到此终端选择："
-    echo "   - 直接按 Enter：继续安装全部 App Store 应用"
-    echo "   - 输入 s 后按 Enter：跳过全部 App Store 应用（一个都不装）"
+    echo "⚠️  未检测到 Apple ID，打开 App Store，登录后按 Enter"
     open -a "App Store" 2>/dev/null || true
-
     while true; do
-        printf "App Store 已登录？[Enter=继续 / s=全部跳过] > "
-        if ! read -r answer; then
-            answer="s"
+        printf "登录完成后按 Enter > "
+        if ! read -r _; then
+            break
         fi
-        case "$answer" in
-            s|S)
-                SKIP_ALL_MAS=1
-                break
-                ;;
-            *)
-                break
-                ;;
-        esac
+        if apple_id_signed_in; then
+            echo "✅ 已检测到 Apple ID：$(apple_id_account)"
+            break
+        fi
+        echo "仍未检测到登录，请登录后再按 Enter（或 Ctrl+C 中止）"
+        open -a "App Store" 2>/dev/null || true
     done
-fi
-
-if [ "$SKIP_ALL_MAS" -eq 1 ]; then
-    echo "⏭️  已跳过全部 App Store 应用安装"
-    while IFS='|' read -r type name id; do
-        [ "$type" = "mas" ] || continue
-        plan_item_enabled mas "$name" || continue
-        record_result "SKIP" "mas:$name" "未登录或用户选择跳过"
-    done <"$MAS_LIST"
-    rm -f "$MAS_LIST"
-    finalize_results_if_owned
-    exit 0
 fi
 
 install_mas_app() {

@@ -15,16 +15,16 @@ list_dock_items() {
 launchpad-grid|LaunchPad 行列数 10×8，并重置布局
 autohide|Dock 自动隐藏
 orientation-left|Dock 位置：左侧
-icon-size|Dock 图标大小 128
+icon-size|Dock 放大尺寸 largesize=128（配合「关闭放大」时通常看不出变化）
 magnification-off|Dock 关闭放大
 mineffect-genie|最小化效果：Genie
 minimize-to-app-off|不最小化到应用程序图标
-launchanim-off|打开应用时图标不跳动
-autohide-instant|显示/隐藏无动画（即时）
-process-indicators|显示打开应用指示灯
-hide-recents|不显示最近打开应用
-mouse-over-hilite|鼠标悬浮高亮
-hot-corners|触发角：右下锁屏 / 左上显示桌面
+launchanim-off|关闭打开应用时的 Dock 弹跳动画
+autohide-instant|显示/隐藏动画时长为 0（即时）
+process-indicators|显示已打开应用的指示灯
+hide-recents|不在 Dock 中显示最近打开的应用
+mouse-over-hilite|Stack 鼠标悬停高亮
+hot-corners|触发角：右下锁屏、左上显示桌面，其余两角关闭
 click-wallpaper-no-desktop|点击壁纸不展现桌面
 clear-and-pin-apps|清空 Dock 固定项，并固定 Apps + Sublime Text
 EOF

@@ -64,8 +64,8 @@ cask "skim"
 
 # 可选：专业软件 / 大体积软件
 # mas "Adobe Lightroom", id: 1451544217
-# mas "Blackmagic Disk Speed Test", id: 425264550
-# mas "DaVinci Resolve", id: 571213070
+mas "Blackmagic Disk Speed Test", id: 425264550
+mas "DaVinci Resolve", id: 571213070
 
 # 必装：日常 App Store 应用
 mas "Drafts", id: 1435957248
