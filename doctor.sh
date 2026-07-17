@@ -69,7 +69,7 @@ if command -v brew &>/dev/null; then
     if brew bundle list --all --file="$SCRIPT_DIR/Brewfile" &>/dev/null; then
         pass "Brewfile 可解析"
     else
-        warn "Brewfile 解析检查未通过，可能是 Homebrew 缓存权限或网络问题；运行 bash init.sh 时会再次执行 brew bundle"
+        warn "Brewfile 解析检查未通过，可能是 Homebrew 缓存权限或网络问题；运行 bash init.sh 时会按 Brewfile 逐个安装"
     fi
 else
     warn "Homebrew 未安装，运行 bash init.sh 会尝试安装"

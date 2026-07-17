@@ -47,17 +47,24 @@ bash init.sh
 
 1. `defaults_config.sh` 修改 Mac 系统设置，和作者本人的使用习惯相关，包括简单密码、Finder 设置等
 2. `git_config.sh` 从 `configs/user.env` 读取 Git 用户信息，并在配置完整时写入全局 Git 配置
-3. `brew.sh` 安装 Homebrew，之后安装一些常用的软件（含 App Store 软件，通过 Brewfile 中的 mas 条目）
+3. `brew.sh` 安装 Homebrew，再按 `Brewfile` **逐个**下载并安装 formula / cask；单个失败会记录并继续。随后处理 App Store 应用（见下）
 4. `oh_my_zsh.sh` 非交互安装 Oh My Zsh
 5. `defaults_dock.sh` 修改 Dock 设置（部分设置依赖上述步骤应用安装完成，所以最后执行）
 
-应用安装清单以 `Brewfile` 为准；`mas.sh` 只作为单独补装 App Store 应用的辅助脚本，会读取 `Brewfile` 中未被注释的 `mas` 条目，不再维护第二份应用列表。
+应用安装清单以 `Brewfile` 为准；`mas.sh` 也可单独补装 App Store 应用，会读取 `Brewfile` 中未被注释的 `mas` 条目，不再维护第二份应用列表。
 
-如果 `init.sh` 执行失败，可以运行 `bash doctor.sh` 检查 macOS、Xcode Command Line Tools、git、Homebrew、mas 和 Oh My Zsh 等状态，辅助定位问题。它只做检查，不会安装软件或修改系统配置。
+**软件安装行为：**
+
+- 每个应用会先提示「正在下载」，再提示「正在安装」，不再黑盒批量等到最后才出结果
+- 单个应用或单个步骤失败不会中断整条流水线，后续继续执行
+- App Store（mas）采用「全有或全无」：安装前打开 App Store，等你登录后按 Enter 再装；若输入 `s` 则**全部跳过**，避免未登录时装一部分、失败一部分
+- 全部步骤结束后打印成功 / 失败 / 跳过汇总，方便对照手动补齐
+
+如果初始化结果不理想，可以运行 `bash doctor.sh` 检查 macOS、Xcode Command Line Tools、git、Homebrew、mas 和 Oh My Zsh 等状态，辅助定位问题。它只做检查，不会安装软件或修改系统配置。
 
 仓库的 GitHub Actions 只执行 `bash -n` 语法校验，不会在 CI 中运行会修改 macOS 设置或安装软件的脚本。
 
-`init.sh` 支持断点续跑，跳过已成功执行的前置步骤：
+`init.sh` 支持断点续跑，跳过已成功执行的前置步骤（一般不必用：失败项已在汇总中列出，且流水线会继续跑完）：
 
 ```shell
 bash init.sh --from brew    # 跳过 defaults 和 git，从 brew 开始

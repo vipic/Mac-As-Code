@@ -1,5 +1,5 @@
 # 需要 sudo 授权，所以提到前面
-cask "logitech-options"
+cask "logi-options+"
 cask "rode-central"
 cask "squirrel-app"
 
@@ -49,7 +49,7 @@ cask "devonthink"
 cask "downie"
 cask "iina"
 cask "netnewswire"
-cask "pngquant"
+brew "pngquant"
 cask "skim"
 
 # 并非每个电脑都安装
