@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -7,13 +7,12 @@ MODE="all"
 
 usage() {
     cat <<'EOF'
-用法：bash doctor.sh [--pre|--post|--all]
+用法：sh doctor.sh [--pre|--post|--all]
+      bash doctor.sh 亦可
 
-  --pre   装机前：只检查会挡住 init 的硬门槛（CLT、git 等）
-  --post  装机后：验收 Homebrew / mas / Oh My Zsh 等是否已就绪
+  --pre   装机前硬门槛（CLT、git 可用性、Brewfile）；init.sh 开头调用
+  --post  装机后验收（brew / mas / Oh My Zsh）；init.sh 结尾调用
   --all   全部检查（默认；单独排查时用）
-
-bootstrap.sh 会依次调用 --pre 与 --post，避免装机前对「尚未安装的软件」误报。
 EOF
 }
 
@@ -62,37 +61,20 @@ check_prereqs() {
     fi
 
     section "Xcode Command Line Tools"
-    if xcode-select -p &>/dev/null; then
+    if xcode-select -p >/dev/null 2>&1; then
         pass "Xcode Command Line Tools 已安装：$(xcode-select -p)"
     else
         fail "未安装 Xcode Command Line Tools，请先运行：xcode-select --install"
     fi
 
-    if command -v git &>/dev/null; then
-        if git --version &>/dev/null; then
+    if command -v git >/dev/null 2>&1; then
+        if git --version >/dev/null 2>&1; then
             pass "git 可用：$(git --version)"
         else
             fail "git 当前不可用，可能需要接受 Xcode 许可：sudo xcodebuild -license"
         fi
     else
         fail "git 不存在"
-    fi
-
-    section "Git 用户信息"
-    USER_CONFIG="$SCRIPT_DIR/configs/user.env"
-    if [ -f "$USER_CONFIG" ]; then
-        GIT_USER_NAME=""
-        GIT_USER_EMAIL=""
-        # shellcheck source=/dev/null
-        source "$USER_CONFIG"
-
-        if [ -n "${GIT_USER_NAME:-}" ] && [ -n "${GIT_USER_EMAIL:-}" ]; then
-            pass "configs/user.env 已填写 Git 用户信息"
-        else
-            warn "configs/user.env 中 Git 用户信息未填写完整，init.sh 会跳过 Git 用户信息配置"
-        fi
-    else
-        warn "未找到 configs/user.env，init.sh 会跳过 Git 用户信息配置"
     fi
 
     section "Brewfile"
@@ -105,9 +87,9 @@ check_prereqs() {
 
 check_installed() {
     section "Homebrew"
-    if command -v brew &>/dev/null; then
+    if command -v brew >/dev/null 2>&1; then
         pass "Homebrew 已安装：$(command -v brew)"
-        if brew bundle list --all --file="$SCRIPT_DIR/Brewfile" &>/dev/null; then
+        if brew bundle list --all --file="$SCRIPT_DIR/Brewfile" >/dev/null 2>&1; then
             pass "Brewfile 可解析"
         else
             warn "Brewfile 解析检查未通过，可能是 Homebrew 缓存权限或网络问题"
@@ -117,7 +99,7 @@ check_installed() {
     fi
 
     section "Mac App Store"
-    if command -v mas &>/dev/null; then
+    if command -v mas >/dev/null 2>&1; then
         pass "mas 已安装"
         if mas_config="$(mas config 2>/dev/null)"; then
             pass "mas 可访问 App Store 配置信息"
@@ -130,14 +112,14 @@ check_installed() {
             warn "mas 无法读取 App Store 配置信息，Brewfile 中的 mas 应用可能无法安装"
         fi
     else
-        fail "mas 未安装"
+        warn "mas 未安装（若装机时跳过了 App Store 应用可忽略）"
     fi
 
     section "Oh My Zsh"
     if [ -d "${ZSH:-$HOME/.oh-my-zsh}" ]; then
         pass "Oh My Zsh 已安装"
     else
-        fail "Oh My Zsh 未安装"
+        warn "Oh My Zsh 未安装（若装机时未勾选可忽略）"
     fi
 }
 

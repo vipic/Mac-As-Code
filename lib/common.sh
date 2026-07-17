@@ -1,6 +1,7 @@
-#!/bin/bash
-# 共用辅助函数：结果记录与 Brewfile 解析。
-# 由 init.sh / brew.sh / mas.sh source，不要直接执行。
+#!/bin/sh
+# 共用辅助函数：结果记录、Brewfile 解析、分步多选 UI。
+# 由 init.sh / brew.sh / mas.sh 以 `.` 加载，不要直接执行。
+# 兼容 sh 与 bash（避免 bash 独有语法）。
 
 # 初始化结果文件。若由 init.sh 导出 MAC_AS_CODE_RESULTS，则复用（不清空）；否则自建。
 init_results() {
@@ -16,9 +17,9 @@ init_results() {
 
 # 追加一条结果。status: OK | FAIL | SKIP
 record_result() {
-    local status="$1"
-    local item="$2"
-    local detail="${3:-}"
+    status="$1"
+    item="$2"
+    detail="${3:-}"
 
     if [ -z "${MAC_AS_CODE_RESULTS:-}" ]; then
         return 0
@@ -27,11 +28,9 @@ record_result() {
 }
 
 # 将结果文件持久化到 ~/Library/Logs/mac-as-code/
-# 参数：结果文件路径、日志名前缀（如 init）
 persist_results_log() {
-    local file="${1:-}"
-    local prefix="${2:-run}"
-    local log_dir log_file
+    file="${1:-}"
+    prefix="${2:-run}"
 
     if [ -z "$file" ] || [ ! -f "$file" ]; then
         return 0
@@ -46,9 +45,14 @@ persist_results_log() {
 
 # 打印成功 / 失败 / 跳过汇总
 print_results_summary() {
-    local file="${1:-${MAC_AS_CODE_RESULTS:-}}"
-    local ok_count=0 fail_count=0 skip_count=0
-    local status item detail
+    file="${1:-${MAC_AS_CODE_RESULTS:-}}"
+    ok_count=0
+    fail_count=0
+    skip_count=0
+    tab="$(printf '\t')"
+    ok_pat="$(printf '^OK\t')"
+    fail_pat="$(printf '^FAIL\t')"
+    skip_pat="$(printf '^SKIP\t')"
 
     if [ -z "$file" ] || [ ! -f "$file" ]; then
         echo
@@ -59,14 +63,13 @@ print_results_summary() {
     echo
     echo "================ 执行结果汇总 ================"
 
-    if grep -q $'^OK\t' "$file" 2>/dev/null; then
+    if grep -q "$ok_pat" "$file" 2>/dev/null; then
         echo
         echo "✅ 成功："
-        while IFS=$'\t' read -r status item detail; do
+        while IFS="$tab" read -r status item detail; do
             [ "$status" = "OK" ] || continue
             ok_count=$((ok_count + 1))
             if [ -n "$detail" ]; then
-                # bash 3.2：多字节字符紧贴 $var 会被误解析，必须用 ${var}
                 echo "  - ${item}（${detail}）"
             else
                 echo "  - ${item}"
@@ -74,10 +77,10 @@ print_results_summary() {
         done <"$file"
     fi
 
-    if grep -q $'^FAIL\t' "$file" 2>/dev/null; then
+    if grep -q "$fail_pat" "$file" 2>/dev/null; then
         echo
         echo "❌ 失败："
-        while IFS=$'\t' read -r status item detail; do
+        while IFS="$tab" read -r status item detail; do
             [ "$status" = "FAIL" ] || continue
             fail_count=$((fail_count + 1))
             if [ -n "$detail" ]; then
@@ -88,10 +91,10 @@ print_results_summary() {
         done <"$file"
     fi
 
-    if grep -q $'^SKIP\t' "$file" 2>/dev/null; then
+    if grep -q "$skip_pat" "$file" 2>/dev/null; then
         echo
         echo "⏭️  跳过："
-        while IFS=$'\t' read -r status item detail; do
+        while IFS="$tab" read -r status item detail; do
             [ "$status" = "SKIP" ] || continue
             skip_count=$((skip_count + 1))
             if [ -n "$detail" ]; then
@@ -112,7 +115,6 @@ print_results_summary() {
     return 0
 }
 
-# 若结果文件由本脚本创建，则打印汇总并清理
 finalize_results_if_owned() {
     if [ "${MAC_AS_CODE_RESULTS_OWNED:-0}" = "1" ] && [ -n "${MAC_AS_CODE_RESULTS:-}" ]; then
         print_results_summary "$MAC_AS_CODE_RESULTS"
@@ -122,19 +124,16 @@ finalize_results_if_owned() {
     fi
 }
 
-# 去掉行首尾空白
 trim() {
-    local s="$1"
+    s="$1"
     s="${s#"${s%%[![:space:]]*}"}"
     s="${s%"${s##*[![:space:]]}"}"
     printf '%s' "$s"
 }
 
 # 解析 Brewfile，按出现顺序输出：type|name|id
-# type: brew | cask | mas；mas 的 id 为 App Store ADAM ID，其余为空
 parse_brewfile() {
-    local brewfile="$1"
-    local line name id
+    brewfile="$1"
 
     while IFS= read -r line || [ -n "$line" ]; do
         line="${line%%#*}"
@@ -155,14 +154,400 @@ parse_brewfile() {
             mas\ \"*)
                 name="${line#mas \"}"
                 name="${name%%\"*}"
-                id=""
-                if [[ "$line" =~ id:[[:space:]]*([0-9]+) ]]; then
-                    id="${BASH_REMATCH[1]}"
-                fi
+                id="$(printf '%s\n' "$line" | sed -n 's/.*id:[[:space:]]*\([0-9][0-9]*\).*/\1/p')"
                 if [ -n "$id" ]; then
                     printf 'mas|%s|%s\n' "$name" "$id"
                 fi
                 ;;
         esac
     done <"$brewfile"
+}
+
+# 把 Brewfile 解析结果写到临时文件，供调用方 while-read（兼容 sh）
+brewfile_list_file() {
+    brewfile="$1"
+    out="$2"
+    parse_brewfile "$brewfile" >"$out"
+}
+
+# 计划文件格式：ON|type|name|extra 或 OFF|type|name|extra
+# type: defaults|dock|plugin|brew|cask|mas
+# defaults/dock 的 extra 为中文说明；mas 的 extra 为 App Store id
+# 参数：brewfile plan [script_dir]
+create_default_plan() {
+    brewfile="$1"
+    plan="$2"
+    script_dir="${3:-}"
+    tmp="$(mktemp -t mac-as-code-brewfile.XXXXXX)"
+
+    parse_brewfile "$brewfile" >"$tmp"
+    {
+        if [ -n "$script_dir" ] && [ -f "$script_dir/defaults_config.sh" ]; then
+            MAC_AS_CODE_LIST_CATALOG=1 sh "$script_dir/defaults_config.sh" | while IFS='|' read -r item_id item_label; do
+                [ -n "$item_id" ] || continue
+                printf 'ON|defaults|%s|%s\n' "$item_id" "$item_label"
+            done
+        fi
+        if [ -n "$script_dir" ] && [ -f "$script_dir/defaults_dock.sh" ]; then
+            MAC_AS_CODE_LIST_CATALOG=1 sh "$script_dir/defaults_dock.sh" | while IFS='|' read -r item_id item_label; do
+                [ -n "$item_id" ] || continue
+                printf 'ON|dock|%s|%s\n' "$item_id" "$item_label"
+            done
+        fi
+        echo "ON|plugin|oh-my-zsh|Oh My Zsh"
+        while IFS='|' read -r type name id || [ -n "${type:-}" ]; do
+            [ -n "${type:-}" ] || continue
+            printf 'ON|%s|%s|%s\n' "$type" "$name" "$id"
+        done <"$tmp"
+    } >"$plan"
+    rm -f "$tmp"
+}
+
+plan_has_on() {
+    plan="$1"
+    type="$2"
+    name="${3:-}"
+
+    if [ ! -f "$plan" ]; then
+        return 1
+    fi
+    if [ -n "$name" ]; then
+        awk -F'|' -v t="$type" -v n="$name" '
+            $1 == "ON" && $2 == t && $3 == n { found = 1 }
+            END { exit found ? 0 : 1 }
+        ' "$plan"
+    else
+        awk -F'|' -v t="$type" '
+            $1 == "ON" && $2 == t { found = 1 }
+            END { exit found ? 0 : 1 }
+        ' "$plan"
+    fi
+}
+
+plan_count_on() {
+    plan="$1"
+    type="$2"
+    count="$(grep -c "^ON|${type}|" "$plan" 2>/dev/null || true)"
+    printf '%s' "${count:-0}"
+}
+
+plan_item_enabled() {
+    type="$1"
+    name="$2"
+
+    if [ -z "${MAC_AS_CODE_PLAN:-}" ] || [ ! -f "${MAC_AS_CODE_PLAN}" ]; then
+        return 0
+    fi
+    plan_has_on "$MAC_AS_CODE_PLAN" "$type" "$name"
+}
+
+plan_label() {
+    type="$1"
+    name="$2"
+    extra="${3:-}"
+    case "$type" in
+        defaults|dock)
+            if [ -n "$extra" ]; then
+                printf '%s' "$extra"
+            else
+                printf '%s' "$name"
+            fi
+            ;;
+        plugin)
+            if [ -n "$extra" ]; then
+                printf '%s' "$extra"
+            else
+                case "$name" in
+                    oh-my-zsh) printf '%s' "Oh My Zsh" ;;
+                    *) printf '%s' "$name" ;;
+                esac
+            fi
+            ;;
+        brew) printf '[brew] %s' "$name" ;;
+        cask) printf '[cask] %s' "$name" ;;
+        mas) printf '%s' "$name" ;;
+        *) printf '%s/%s' "$type" "$name" ;;
+    esac
+}
+
+# types 形如 "module" 或 "brew|cask" 或 "mas"
+plan_count_types() {
+    plan="$1"
+    types="$2"
+    awk -F'|' -v types="$types" '
+        BEGIN {
+            n = split(types, arr, "|")
+            for (i = 1; i <= n; i++) if (arr[i] != "") want[arr[i]] = 1
+        }
+        want[$2] { c++ }
+        END { print c + 0 }
+    ' "$plan"
+}
+
+plan_set_types_state() {
+    plan="$1"
+    types="$2"
+    state="$3"
+    tmp="$(mktemp -t mac-as-code-plan.XXXXXX)"
+    awk -F'|' -v types="$types" -v state="$state" '
+        BEGIN {
+            OFS = "|"
+            n = split(types, arr, "|")
+            for (i = 1; i <= n; i++) if (arr[i] != "") want[arr[i]] = 1
+        }
+        {
+            if (want[$2]) $1 = state
+            print
+        }
+    ' "$plan" >"$tmp"
+    /usr/bin/ditto "$tmp" "$plan"
+    rm -f "$tmp"
+}
+
+plan_toggle_nth_of_types() {
+    plan="$1"
+    types="$2"
+    nth="$3"
+    tmp="$(mktemp -t mac-as-code-plan.XXXXXX)"
+    awk -F'|' -v types="$types" -v nth="$nth" '
+        BEGIN {
+            OFS = "|"
+            n = split(types, arr, "|")
+            for (i = 1; i <= n; i++) if (arr[i] != "") want[arr[i]] = 1
+            c = 0
+        }
+        {
+            if (want[$2]) {
+                c++
+                if (c == nth) {
+                    if ($1 == "ON") $1 = "OFF"
+                    else $1 = "ON"
+                }
+            }
+            print
+        }
+    ' "$plan" >"$tmp"
+    /usr/bin/ditto "$tmp" "$plan"
+    rm -f "$tmp"
+}
+
+# ---------- 终端多选 UI：↑↓ 移动，空格切换，Enter 确认 ----------
+
+_UI_STTY_SAVE=""
+
+ui_restore_tty() {
+    # 恢复光标显示，再还原终端属性
+    printf '\033[?25h' 2>/dev/null || true
+    if [ -n "${_UI_STTY_SAVE:-}" ]; then
+        stty "${_UI_STTY_SAVE}" 2>/dev/null || true
+    fi
+}
+
+# 回到左上角并清掉下方旧内容（比整屏 2J 闪烁小很多），重绘时隐藏光标
+ui_redraw_begin() {
+    printf '\033[?25l\033[H\033[J'
+}
+
+# 输出：up / down / space / enter / all / none / quit / other
+ui_read_key() {
+    c="$(dd bs=1 count=1 2>/dev/null)"
+    case "$c" in
+        " ")
+            printf 'space'
+            return 0
+            ;;
+        a|A)
+            printf 'all'
+            return 0
+            ;;
+        n|N)
+            printf 'none'
+            return 0
+            ;;
+        q|Q)
+            printf 'quit'
+            return 0
+            ;;
+        j|J)
+            printf 'down'
+            return 0
+            ;;
+        k|K)
+            printf 'up'
+            return 0
+            ;;
+        "")
+            # 部分环境 Enter 读到空
+            printf 'enter'
+            return 0
+            ;;
+    esac
+
+    # Enter：换行或回车
+    nl="$(printf '\n')"
+    cr="$(printf '\r')"
+    if [ "$c" = "$nl" ] || [ "$c" = "$cr" ]; then
+        printf 'enter'
+        return 0
+    fi
+
+    # 方向键：ESC [ A/B ，或 ESC O A/B
+    esc="$(printf '\033')"
+    if [ "$c" = "$esc" ]; then
+        c2="$(dd bs=1 count=1 2>/dev/null)"
+        c3="$(dd bs=1 count=1 2>/dev/null)"
+        case "${c2}${c3}" in
+            "[A"|"OA") printf 'up'; return 0 ;;
+            "[B"|"OB") printf 'down'; return 0 ;;
+        esac
+    fi
+
+    printf 'other'
+}
+
+# 分步多选：只展示 types 匹配的计划项
+# 用法：checkbox_select_step "标题" "brew|cask" "$plan"
+checkbox_select_step() {
+    title="$1"
+    types="$2"
+    plan="$3"
+    cursor=1
+    total=0
+    key=""
+    mark=""
+    pointer=""
+    idx=0
+    state=""
+    type=""
+    name=""
+    id=""
+    label=""
+
+    total="$(plan_count_types "$plan" "$types")"
+    if [ "$total" -eq 0 ]; then
+        echo "ℹ️  ${title}：无可选项，跳过"
+        return 0
+    fi
+
+    _UI_STTY_SAVE="$(stty -g)"
+    # 只钩 INT/TERM，避免覆盖 init.sh 的 EXIT 清理 trap
+    trap 'ui_restore_tty; exit 130' INT
+    trap 'ui_restore_tty; exit 143' TERM
+    stty -echo -icanon min 1 time 0 2>/dev/null
+
+    while true; do
+        # 一帧内容用一次 awk 生成，避免循环里反复清屏/fork 造成闪烁
+        frame="$(
+            awk -F'|' -v types="$types" -v cursor="$cursor" -v title="$title" -v total="$total" '
+                BEGIN {
+                    OFS = ""
+                    n = split(types, arr, "|")
+                    for (i = 1; i <= n; i++) if (arr[i] != "") want[arr[i]] = 1
+                    selected = 0
+                    idx = 0
+                    print "======== " title " ========"
+                    print "↑↓ 移动   空格 选中/取消   a 全选   n 全不选   Enter 确认   q 退出"
+                    print "（默认已全选，可取消不需要的项）"
+                    print ""
+                }
+                want[$2] {
+                    idx++
+                    if ($1 == "ON") {
+                        mark = "[x]"
+                        selected++
+                    } else {
+                        mark = "[ ]"
+                    }
+                    pointer = (idx == cursor) ? ">" : " "
+                    type = $2
+                    name = $3
+                    extra = $4
+                    if (type == "defaults" || type == "dock") {
+                        label = (extra != "") ? extra : name
+                    } else if (type == "plugin") {
+                        label = (extra != "") ? extra : name
+                    } else if (type == "brew") {
+                        label = "[brew] " name
+                    } else if (type == "cask") {
+                        label = "[cask] " name
+                    } else {
+                        label = name
+                    }
+                    print pointer " " mark " " label
+                }
+                END {
+                    print ""
+                    print "已选 " selected " / " total
+                }
+            ' "$plan"
+        )"
+
+        ui_redraw_begin
+        printf '%s\n' "$frame"
+
+        key="$(ui_read_key)"
+        case "$key" in
+            up)
+                if [ "$cursor" -gt 1 ]; then
+                    cursor=$((cursor - 1))
+                fi
+                ;;
+            down)
+                if [ "$cursor" -lt "$total" ]; then
+                    cursor=$((cursor + 1))
+                fi
+                ;;
+            space)
+                plan_toggle_nth_of_types "$plan" "$types" "$cursor"
+                ;;
+            all)
+                plan_set_types_state "$plan" "$types" "ON"
+                ;;
+            none)
+                plan_set_types_state "$plan" "$types" "OFF"
+                ;;
+            enter)
+                break
+                ;;
+            quit)
+                ui_restore_tty
+                trap - INT TERM
+                echo
+                echo "👋 已退出"
+                return 2
+                ;;
+        esac
+    done
+
+    ui_restore_tty
+    trap - INT TERM
+    echo
+    echo "✅ 已确认：${title}"
+}
+
+# 分步编辑计划：模块 → Homebrew → App Store
+# 返回 2 表示用户按 q 退出
+edit_plan_interactive() {
+    plan="$1"
+    yes_mode="${2:-0}"
+
+    if [ "$yes_mode" = "1" ] || [ ! -t 0 ]; then
+        echo "ℹ️  非交互模式：使用默认全选计划"
+        return 0
+    fi
+
+    echo
+    echo "接下来分步选择要执行的内容（默认全选）。按 q 可随时退出。"
+    checkbox_select_step "步骤 1/5：系统设置（逐项确认）" "defaults" "$plan" || return $?
+    checkbox_select_step "步骤 2/5：Dock（逐项确认）" "dock" "$plan" || return $?
+    checkbox_select_step "步骤 3/5：Homebrew 软件（formula / cask）" "brew|cask" "$plan" || return $?
+    checkbox_select_step "步骤 4/5：插件（Oh My Zsh 等）" "plugin" "$plan" || return $?
+    if [ "$(plan_count_types "$plan" "mas")" -gt 0 ]; then
+        checkbox_select_step "步骤 5/5：App Store 应用（mas）" "mas" "$plan" || return $?
+    else
+        echo "ℹ️  步骤 5/5：Brewfile 中无 App Store 应用，跳过"
+    fi
+
+    echo
+    echo "选项已确认，开始装机（中途不再询问模块选项）。"
 }

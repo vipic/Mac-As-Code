@@ -1,49 +1,118 @@
-#!/bin/bash
-set -eu
+#!/bin/sh
+set -u
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=lib/common.sh
+. "$SCRIPT_DIR/lib/common.sh"
 
 ######################################
-## 设置修改，有的属性需要重启电脑之后生效 ##
+## 系统设置（可按项勾选）
+## 有的属性需要重启电脑之后生效
 ######################################
 
-# 始终显示菜单栏（不自动隐藏）
-defaults write NSGlobalDomain _HIHideMenuBar -int 0
+# 输出：id|说明（供多选 UI / 计划生成）
+list_defaults_items() {
+    cat <<'EOF'
+menu-bar-visible|始终显示菜单栏（不自动隐藏）
+fullscreen-hide-menu|全屏时隐藏菜单栏
+measurement-cm|计量单位：厘米
+temp-celsius|温度显示：摄氏度
+disable-text-replacement|禁止系统文本替换（避免 macOS 误触发）
+release-cmd-d|释放快捷键 ⌘D（查字典）
+simple-password|允许简单密码（清除复杂密码策略）
+key-repeat-fast|按键重复速度加快
+key-repeat-delay-short|按键重复延迟缩短
+finder-list-view|Finder 使用列表视图
+finder-show-extensions|Finder 显示文件扩展名
+clock-24h|日期显示 24 小时制（重启后生效）
+trackpad-swipe-navigate|触控板双指水平滑动：前进/后退
+EOF
+}
 
-# 全屏时隐藏菜单栏
-defaults write NSGlobalDomain AppleMenuBarVisibleInFullscreen -int 0
+if [ "${MAC_AS_CODE_LIST_CATALOG:-}" = "1" ]; then
+    list_defaults_items
+    exit 0
+fi
 
-defaults write NSGlobalDomain AppleMeasurementUnits -string Centimeters
+apply_defaults_item() {
+    case "$1" in
+        menu-bar-visible)
+            defaults write NSGlobalDomain _HIHideMenuBar -int 0
+            ;;
+        fullscreen-hide-menu)
+            defaults write NSGlobalDomain AppleMenuBarVisibleInFullscreen -int 0
+            ;;
+        measurement-cm)
+            defaults write NSGlobalDomain AppleMeasurementUnits -string Centimeters
+            ;;
+        temp-celsius)
+            defaults write -g AppleTemperatureUnit -string Celsius
+            ;;
+        disable-text-replacement)
+            # 参考：https://github.com/element-hq/element-web/issues/7155
+            defaults write -g WebAutomaticTextReplacementEnabled -int 0
+            ;;
+        release-cmd-d)
+            # 参考：https://apple.stackexchange.com/questions/22785
+            defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dict><key>enabled</key><false/></dict>'
+            ;;
+        simple-password)
+            pwpolicy -clearaccountpolicies
+            ;;
+        key-repeat-fast)
+            defaults write -g KeyRepeat -int 2
+            ;;
+        key-repeat-delay-short)
+            defaults write -g InitialKeyRepeat -int 15
+            ;;
+        finder-list-view)
+            defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+            ;;
+        finder-show-extensions)
+            defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+            ;;
+        clock-24h)
+            defaults write NSGlobalDomain AppleICUForce24HourTime -bool true
+            ;;
+        trackpad-swipe-navigate)
+            defaults write NSGlobalDomain AppleEnableSwipeNavigateWithScrolls -bool true
+            defaults write com.apple.AppleMultitouchTrackpad TrackpadHorizScroll -int 1
+            defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadHorizScroll -int 1
+            ;;
+        *)
+            echo "⚠️  未知系统设置项：$1"
+            return 1
+            ;;
+    esac
+}
 
-# 温度显示摄氏度
-defaults write -g AppleTemperatureUnit -string Celsius
+init_results
 
-# 禁止 mac 系统的文本替换 [参考链接](https://github.com/element-hq/element-web/issues/7155) 和他类似，之所以不删除 macOS 上的文本替换，是因为文本替换会在 iOS 和 macOS 之间同步，iOS 端会将替换内容上到候选词里面，不会误触。但是在 macOS 上直接就触发了替换，非常影响使用。
-defaults write -g WebAutomaticTextReplacementEnabled -int 0
+echo "🔧 按勾选项应用系统设置..."
+APPLIED=0
+while IFS='|' read -r item_id item_label || [ -n "${item_id:-}" ]; do
+    [ -n "${item_id:-}" ] || continue
+    if plan_item_enabled defaults "$item_id"; then
+        echo "  → ${item_label}"
+        if apply_defaults_item "$item_id"; then
+            record_result "OK" "defaults:$item_id" "$item_label"
+            APPLIED=$((APPLIED + 1))
+        else
+            record_result "FAIL" "defaults:$item_id" "$item_label"
+        fi
+    else
+        record_result "SKIP" "defaults:$item_id" "未选中"
+    fi
+done <<EOF
+$(list_defaults_items)
+EOF
 
-# 释放快捷键 ⌘Command+D（查字典）[参考链接](https://apple.stackexchange.com/questions/22785)
-defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 70 '<dict><key>enabled</key><false/></dict>'
+if [ "$APPLIED" -gt 0 ]; then
+    echo "🔄 重启 Finder 以应用设置..."
+    killall Finder 2>/dev/null || true
+else
+    echo "ℹ️  未选中任何系统设置项"
+fi
 
-# 允许简单密码（家庭电脑不需要复杂密码策略）
-pwpolicy -clearaccountpolicies
-
-# 按键重复速度（长按删除键时字符重复间隔，越小越快。2 = 30ms，为系统偏好设置滑条允许的最快值；1 = 15ms 可通过 defaults write 设置）
-defaults write -g KeyRepeat -int 2
-
-# 按键重复延迟（按住一个字母后等多久开始连续输入，越小越短）
-defaults write -g InitialKeyRepeat -int 15
-
-# Finder 使用列表视图
-defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
-
-# Finder 显示文件扩展名
-defaults write NSGlobalDomain AppleShowAllExtensions -bool true
-
-# 日期显示采用 24 小时制（重启电脑生效）
-defaults write NSGlobalDomain AppleICUForce24HourTime -bool true
-
-# Trackpad 双指水平滑动 = 在页面间滑动（浏览器前进/后退等）
-defaults write NSGlobalDomain AppleEnableSwipeNavigateWithScrolls -bool true
-defaults write com.apple.AppleMultitouchTrackpad TrackpadHorizScroll -int 1
-defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadHorizScroll -int 1
-
-echo "🔄 重启 Finder 以应用设置..."
-killall Finder
+finalize_results_if_owned
+exit 0

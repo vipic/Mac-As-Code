@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -eu
 
 ################################
@@ -13,17 +13,17 @@ if [ -d "$OH_MY_ZSH_DIR" ]; then
     exit 0
 fi
 
-if ! command -v zsh &>/dev/null; then
+if ! command -v zsh >/dev/null 2>&1; then
     echo "❌ zsh 未安装"
     exit 1
 fi
 
-if ! command -v git &>/dev/null; then
+if ! command -v git >/dev/null 2>&1; then
     echo "❌ git 未安装，请先安装 Xcode Command Line Tools"
     exit 1
 fi
 
-if ! git --version &>/dev/null; then
+if ! git --version >/dev/null 2>&1; then
     echo "❌ git 当前不可用，请先处理 Xcode 许可，例如在终端执行：sudo xcodebuild -license"
     exit 1
 fi

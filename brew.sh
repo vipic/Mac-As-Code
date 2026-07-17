@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=lib/common.sh
-source "$SCRIPT_DIR/lib/common.sh"
+. "$SCRIPT_DIR/lib/common.sh"
 
 BREWFILE="$SCRIPT_DIR/Brewfile"
 FAIL_COUNT=0
@@ -14,7 +14,7 @@ init_results
 ## 安装 Homebrew 以及一些软件 ##
 #############################
 
-if ! command -v brew &>/dev/null; then
+if ! command -v brew >/dev/null 2>&1; then
     echo "🍺 安装 Homebrew..."
     if ! /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
         echo "❌ Homebrew 安装失败"
@@ -51,7 +51,7 @@ install_formula() {
     local index="$2"
     local total="$3"
 
-    if brew list --formula "$name" &>/dev/null; then
+    if brew list --formula "$name" >/dev/null 2>&1; then
         echo "✅ [$index/$total] $name 已安装，跳过"
         record_result "OK" "brew:$name" "已安装"
         return 0
@@ -83,7 +83,7 @@ install_cask() {
     local index="$2"
     local total="$3"
 
-    if brew list --cask "$name" &>/dev/null; then
+    if brew list --cask "$name" >/dev/null 2>&1; then
         echo "✅ [$index/$total] $name 已安装，跳过"
         record_result "OK" "cask:$name" "已安装"
         return 0
@@ -113,6 +113,9 @@ install_cask() {
 
 # 先统计数量，再按 Brewfile 顺序安装（formula / cask）；mas 交给 mas.sh
 # 进度编号按 Brewfile 总顺序统一递增，避免 cask/formula 分套计数导致 [3/19] 后突然变成 [1/14]
+BREW_LIST="$(mktemp -t mac-as-code-brewlist.XXXXXX)"
+parse_brewfile "$BREWFILE" >"$BREW_LIST"
+
 FORMULA_TOTAL=0
 CASK_TOTAL=0
 while IFS='|' read -r type _name _id; do
@@ -120,33 +123,67 @@ while IFS='|' read -r type _name _id; do
         brew) FORMULA_TOTAL=$((FORMULA_TOTAL + 1)) ;;
         cask) CASK_TOTAL=$((CASK_TOTAL + 1)) ;;
     esac
-done < <(parse_brewfile "$BREWFILE")
+done <"$BREW_LIST"
 
-BREW_TOTAL=$((FORMULA_TOTAL + CASK_TOTAL))
+# 若有装机计划，只统计 / 安装选中的条目
+BREW_TOTAL=0
+while IFS='|' read -r type name _id; do
+    case "$type" in
+        brew|cask)
+            if plan_item_enabled "$type" "$name"; then
+                BREW_TOTAL=$((BREW_TOTAL + 1))
+            fi
+            ;;
+    esac
+done <"$BREW_LIST"
 
 echo
-echo "📦 按 Brewfile 逐个安装软件（共 ${BREW_TOTAL}：formula ${FORMULA_TOTAL} + cask ${CASK_TOTAL}）..."
-echo "   单个失败会记录并继续，不会整批中断。"
+if [ "$BREW_TOTAL" -eq 0 ]; then
+    echo "ℹ️  未选中任何 Homebrew formula/cask，跳过软件安装循环"
+else
+    echo "📦 按计划逐个安装软件（共 ${BREW_TOTAL}，Brewfile 中 formula ${FORMULA_TOTAL} + cask ${CASK_TOTAL}）..."
+    echo "   单个失败会记录并继续，不会整批中断。"
+fi
 
 BREW_INDEX=0
 while IFS='|' read -r type name _id; do
     case "$type" in
         brew)
+            if ! plan_item_enabled brew "$name"; then
+                continue
+            fi
             BREW_INDEX=$((BREW_INDEX + 1))
             install_formula "$name" "$BREW_INDEX" "$BREW_TOTAL" || true
             ;;
         cask)
+            if ! plan_item_enabled cask "$name"; then
+                continue
+            fi
             BREW_INDEX=$((BREW_INDEX + 1))
             install_cask "$name" "$BREW_INDEX" "$BREW_TOTAL" || true
             ;;
     esac
-done < <(parse_brewfile "$BREWFILE")
+done <"$BREW_LIST"
 
-echo
-echo "📱 处理 Brewfile 中的 App Store 应用..."
-# mas.sh 复用同一份结果文件；失败不阻断后续 init 步骤
-if ! bash "$SCRIPT_DIR/mas.sh"; then
-    FAIL_COUNT=$((FAIL_COUNT + 1))
+rm -f "$BREW_LIST"
+
+# 有选中的 mas，或未使用计划文件时，交给 mas.sh
+RUN_MAS=0
+if [ -z "${MAC_AS_CODE_PLAN:-}" ] || [ ! -f "${MAC_AS_CODE_PLAN}" ]; then
+    RUN_MAS=1
+elif [ "${MAC_AS_CODE_SKIP_MAS:-}" != "1" ] && plan_has_on "$MAC_AS_CODE_PLAN" "mas"; then
+    RUN_MAS=1
+fi
+
+if [ "$RUN_MAS" -eq 1 ]; then
+    echo
+    echo "📱 处理 App Store 应用..."
+    if ! sh "$SCRIPT_DIR/mas.sh"; then
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+else
+    echo
+    echo "⏭️  跳过 App Store 应用（未选中或已在开始时选择跳过）"
 fi
 
 finalize_results_if_owned
