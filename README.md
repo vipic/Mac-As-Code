@@ -10,7 +10,7 @@
 | `sh scripts/check_format.sh` | 检查 `config/` 编写格式（注解项 / Brewfile） |
 | `sh scripts/check_format.sh --self-test` | 用固定件验证检查脚本本身（改它时用） |
 
-可改的清单在 `config/`（Brewfile、系统设置、Dock）；实现脚本在 `scripts/`。
+可改的清单在 `config/`（Brewfile、系统设置、Dock、plugins）；实现脚本在 `scripts/`。
 
 ## ⚠️ 注意
 
@@ -71,4 +71,14 @@ CI 会跑 `bash -n` 与 `check_format.sh --self-test`。
 defaults write NSGlobalDomain SomeKey -int 1
 ```
 
-增减一项只需加/删这样一段；`init` 多选与执行会自动解析，不必再改目录表或 `case`。`check_format` 会校验：项头格式、说明非空、id 不重复、每项有命令体、命令体 `sh -n`，以及 Brewfile 的 `brew` / `cask` / `mas … id:` 行。
+增减一项只需加/删这样一段；`init` 多选与执行会自动解析，不必再改目录表或 `case`。
+
+插件放在 `config/plugins/`：每个 `<id>.sh` 一个插件，文件头写明多选文案即可被发现：
+
+```shell
+#!/bin/sh
+# oh-my-zsh | Oh My Zsh（非交互安装）
+# …安装逻辑
+```
+
+`check_format` 会校验：注解项格式、插件头 id 与文件名一致、Brewfile 的 `brew` / `cask` / `mas … id:` 行。

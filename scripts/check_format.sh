@@ -19,18 +19,22 @@ usage() {
       sh scripts/check_format.sh --self-test
       bash scripts/check_format.sh 亦可
 
-检查 defaults / dock 注解项与 Brewfile 格式。无参数时检查：
+检查 defaults / dock 注解项、plugins 与 Brewfile 格式。无参数时检查：
   config/defaults_config.sh
   config/defaults_dock.sh
+  config/plugins/*.sh
   config/Brewfile
 
   --self-test   用 tests/fixtures 验证本脚本（改 check_format 时用）
                 固定件故意错误默认不打印；VERBOSE=1 可展开
   -v, --verbose 与 --self-test 联用，打印固定件检查详情
 
-注解项格式：
+注解项格式（defaults / dock）：
   # my-setting | 这一项的说明（多选里显示）
   defaults write NSGlobalDomain SomeKey -int 1
+
+插件（config/plugins/<id>.sh）文件头：
+  # <id> | 说明（id 须与文件名一致）
 
 Brewfile 启用行仅支持：
   brew "name"
@@ -325,9 +329,92 @@ check_brewfile() {
     rm -f "$errors"
 }
 
+# 插件脚本：文件名即 id，须有匹配的「# id | 说明」头
+check_plugin_script() {
+    file="$1"
+    label="${2:-$file}"
+    id=""
+    meta_id=""
+    meta_label=""
+    header_count=0
+    errors="$(mktemp -t mac-as-code-plugin.XXXXXX)"
+
+    section "插件：${label}"
+    CHECKED=$((CHECKED + 1))
+
+    if [ ! -f "$file" ]; then
+        fail "文件不存在：${file}"
+        rm -f "$errors"
+        return 1
+    fi
+
+    id="$(basename "$file" .sh)"
+
+    if ! sh -n "$file" 2>"$errors"; then
+        fail "shell 语法错误（sh -n）"
+        sed 's/^/     /' "$errors"
+    else
+        pass "shell 语法（sh -n）"
+    fi
+
+    header_count="$(
+        awk '
+            /^#[[:space:]]*[A-Za-z0-9_-]+[[:space:]]*\|/ { c++ }
+            END { print c + 0 }
+        ' "$file"
+    )"
+
+    if [ "$header_count" -eq 0 ]; then
+        fail "缺少插件头「# ${id} | 说明」"
+    else
+        meta_id="$(
+            awk '
+                /^#[[:space:]]*[A-Za-z0-9_-]+[[:space:]]*\|/ {
+                    line = $0
+                    sub(/^#[[:space:]]*/, "", line)
+                    id = line
+                    sub(/[[:space:]]*\|.*/, "", id)
+                    print id
+                    exit
+                }
+            ' "$file"
+        )"
+        meta_label="$(
+            awk '
+                /^#[[:space:]]*[A-Za-z0-9_-]+[[:space:]]*\|/ {
+                    line = $0
+                    sub(/^#[[:space:]]*/, "", line)
+                    sub(/^[^|]*\|[[:space:]]*/, "", line)
+                    gsub(/^[[:space:]]+|[[:space:]]+$/, "", line)
+                    print line
+                    exit
+                }
+            ' "$file"
+        )"
+        if [ "$meta_id" != "$id" ]; then
+            fail "项头 id「${meta_id}」与文件名「${id}」不一致"
+        elif [ -z "$meta_label" ]; then
+            fail "项头说明为空"
+        else
+            pass "插件头：${meta_id} | ${meta_label}"
+        fi
+        if [ "$header_count" -gt 1 ]; then
+            fail "插件文件应只有一个「# id | 说明」头（当前 ${header_count} 个）"
+        fi
+    fi
+
+    rm -f "$errors"
+}
+
 check_path() {
     path="$1"
     base="$(basename "$path")"
+    case "$path" in
+        */plugins/*.sh)
+            check_plugin_script "$path"
+            return 0
+            ;;
+    esac
     case "$base" in
         Brewfile|*Brewfile*|*.brewfile)
             check_brewfile "$path"
@@ -466,6 +553,12 @@ echo "🔍 检查配置格式..."
 if [ "$#" -eq 0 ]; then
     check_annotated_shell "$ROOT_DIR/config/defaults_config.sh" "config/defaults_config.sh"
     check_annotated_shell "$ROOT_DIR/config/defaults_dock.sh" "config/defaults_dock.sh"
+    if [ -d "$ROOT_DIR/config/plugins" ]; then
+        for plugin in "$ROOT_DIR/config/plugins"/*.sh; do
+            [ -f "$plugin" ] || continue
+            check_plugin_script "$plugin" "config/plugins/$(basename "$plugin")"
+        done
+    fi
     check_brewfile "$ROOT_DIR/config/Brewfile" "config/Brewfile"
 else
     for path in "$@"; do
